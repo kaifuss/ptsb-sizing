@@ -580,5 +580,6 @@ This project is licensed under the Mozilla Public License 2.0.
 1. [Документация по расчету аппаратных характеристик для серверов PT Sandbox](https://help.ptsecurity.com/ru-RU/projects/sb/5.14/implementation/5123362699)
 2. [Документация по разметке дискового пространства для серверов PT Sandbox](https://help.ptsecurity.com/ru-RU/projects/sb/5.14/implementation/6015788043)
 
+Актуальная версия PT SB, под которую писался скрипт - 5.14
 ## Контакты
 Для связи с автором проекта обращаться в tg: [@corgi_llama](https://t.me/corgi_llama)
