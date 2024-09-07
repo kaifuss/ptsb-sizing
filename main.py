@@ -657,22 +657,31 @@ if __name__ == '__main__':
         #расчет дополнительных серверов с динамикой
         servers_list.extend(get_all_additional_servers(installation_parameters['vms_all'], installation_parameters['vms_per_server']))
 
-    
     #предварительная обработка серверов перед выводом
     servers_list = [replace_zero_with_message(server) for server in servers_list]
 
-    #вывод данных в консоль о серверах по общем ТХ серверов системы
-    print('\n\n═══════════════════════Итоговые значения для серверов═══════════════════════')
+    #генерация таблицы с ТХ для вывода в консоль и txt файл
     fields_for_parameters = ['theads_amount', 'ram_amount', 'ssd_size', 'hdd_size']
     first_column_fields_parameters = ['Процессор 2.2 Ггц, потоков', 'Память ОЗУ, Гб', 'SSD, Гб', 'HDD, Гб']
     technical_requirements_table = generate_table('fancy', servers_list, fields_for_parameters, '\nПараметры сервера', first_column_fields_parameters)
+    
+    #генерация таблицы с разметкой для вывода в консоль и txt файл
+    fields_for_partitioning = ['root_space', 'opt_space', 'minio_space', 'home_space']
+    first_column_fields_partitioning = ['/', '/opt', '/opt/ptms/var/minio', '/home'] 
+    partitioning_table = generate_table('fancy', servers_list, fields_for_partitioning, '\nТочка монтирования', first_column_fields_partitioning)
+
+    #генерация таблицы с ТХ для вывода в csv файл
+    csv_technical_requirements_table = generate_table('csv', servers_list, fields_for_parameters, '\nПараметры сервера', first_column_fields_parameters)
+
+    #генерация таблицы с разметкой для вывода в csv файл
+    csv_partitioning_table = generate_table('csv', servers_list, fields_for_partitioning, '\nТочка монтирования', first_column_fields_partitioning)
+
+    #вывод данных в консоль о серверах по общем ТХ серверов системы
+    print('\n\n═══════════════════════Итоговые значения для серверов═══════════════════════')
     print('\n──────────────────Таблица с техническими характеристиками───────────────────')
     print(technical_requirements_table)
 
     #вывод данных в консоль о серверах по разметке дискового пространства
-    fields_for_partitioning = ['root_space', 'opt_space', 'minio_space', 'home_space']
-    first_column_fields_partitioning = ['/', '/opt', '/opt/ptms/var/minio', '/home'] 
-    partitioning_table = generate_table('fancy', servers_list, fields_for_partitioning, '\nТочка монтирования', first_column_fields_partitioning)
     print('\n──────────────Таблица с разметкой дискового пространства (Гб)───────────────')
     print(partitioning_table)
 
@@ -681,7 +690,5 @@ if __name__ == '__main__':
     print(f"Данные о серверах были сохранены в файл {txt_file_name}")
 
     #вывод данных в csv файл по серверам
-    csv_technical_requirements_table = generate_table('csv', servers_list, fields_for_parameters, '\nПараметры сервера', first_column_fields_parameters)
-    csv_partitioning_table = generate_table('csv', servers_list, fields_for_partitioning, '\nТочка монтирования', first_column_fields_partitioning)
     output_to_csv(csv_technical_requirements_table, csv_partitioning_table, csv_file_name)
     print(f"Данные о серверах были сохранены в файл {csv_file_name}")
