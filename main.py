@@ -8,6 +8,7 @@ print('''
 ''')
 
 #DEPENDENCIES
+import csv
 import math
 from tabulate import tabulate
 
@@ -328,7 +329,7 @@ def replace_zero_with_message(server, message="Не требуется"):
     return {key: (message if value == 0 else value) for key, value in server.items()}
 
 #генерация таблицы для вывода данных по всем серверам
-def generate_table(servers_list, fields, first_column_header, first_column_fields):
+def generate_table(table_format, servers_list, fields, first_column_header, first_column_fields):
     transposed_data = {}
     transposed_data[first_column_header] = first_column_fields
     
@@ -342,8 +343,15 @@ def generate_table(servers_list, fields, first_column_header, first_column_field
     #транспонирование данных
     transposed_table = list(zip(*transposed_data.values()))
     
-    table = tabulate(transposed_table, headers=transposed_data.keys(), tablefmt="fancy_grid")
-    return table
+    #задание формата таблицы в csv или fancy
+    if table_format == 'fancy':
+        fancy_table = tabulate(transposed_table, headers=transposed_data.keys(), tablefmt="fancy_grid")
+        return fancy_table
+    elif table_format == 'csv':
+        #первая строка, заголовки
+        csv_table = [list(transposed_data.keys())]
+        csv_table.extend(transposed_table)
+        return csv_table
 
 #вывод данных по стенду в файл txt
 def output_to_txt(tech_req_table, partition_table, filename):
@@ -354,13 +362,24 @@ def output_to_txt(tech_req_table, partition_table, filename):
         output_file.write(partition_table)
     pass
 
+#вывод данных по стенду в файл csv
+def output_to_csv(tech_req_table, partition_table, filename):
+    with open(filename, mode='w', newline='', encoding='windows-1251') as output_file:
+        writer = csv.writer(output_file)
+        writer.writerow(['Таблица с техническими требованиями к серверам:'])
+        writer.writerows(tech_req_table)
+        writer.writerow(['Таблица с разметкой дискового пространства серверов:'])
+        writer.writerows(partition_table)
+
 #INT MAIN
 if __name__ == '__main__':
     
     servers_list = []   #лист для хранения всех объектов dict(), содержащих конфигурацию серверов
     sources_list = []   #лист для хранения всех объектов dict(), содержащих конфигурацию источников
 
-    txt_file_name = 'config.txt'    #имя output .txt-файла с конфигурацией
+    #имя output файлов с конфигурацией
+    txt_file_name = 'config.txt'    
+    csv_file_name = 'config.csv'
 
     #основные параметры конфигурации
     installation_parameters = {
@@ -646,17 +665,23 @@ if __name__ == '__main__':
     print('\n\n═══════════════════════Итоговые значения для серверов═══════════════════════')
     fields_for_parameters = ['theads_amount', 'ram_amount', 'ssd_size', 'hdd_size']
     first_column_fields_parameters = ['Процессор 2.2 Ггц, потоков', 'Память ОЗУ, Гб', 'SSD, Гб', 'HDD, Гб']
-    technical_requirements_table = generate_table(servers_list, fields_for_parameters, '\nПараметры сервера', first_column_fields_parameters)
+    technical_requirements_table = generate_table('fancy', servers_list, fields_for_parameters, '\nПараметры сервера', first_column_fields_parameters)
     print('\n──────────────────Таблица с техническими характеристиками───────────────────')
     print(technical_requirements_table)
 
     #вывод данных в консоль о серверах по разметке дискового пространства
     fields_for_partitioning = ['root_space', 'opt_space', 'minio_space', 'home_space']
     first_column_fields_partitioning = ['/', '/opt', '/opt/ptms/var/minio', '/home'] 
-    partitioning_table = generate_table(servers_list, fields_for_partitioning, '\nТочка монтирования', first_column_fields_partitioning)
+    partitioning_table = generate_table('fancy', servers_list, fields_for_partitioning, '\nТочка монтирования', first_column_fields_partitioning)
     print('\n──────────────Таблица с разметкой дискового пространства (Гб)───────────────')
     print(partitioning_table)
 
-    #вывод данных в файл по серверам
+    #вывод данных в txt файл по серверам
     output_to_txt(technical_requirements_table, partitioning_table, txt_file_name)
     print(f"Данные о серверах были сохранены в файл {txt_file_name}")
+
+    #вывод данных в csv файл по серверам
+    csv_technical_requirements_table = generate_table('csv', servers_list, fields_for_parameters, '\nПараметры сервера', first_column_fields_parameters)
+    csv_partitioning_table = generate_table('csv', servers_list, fields_for_partitioning, '\nТочка монтирования', first_column_fields_partitioning)
+    output_to_csv(csv_technical_requirements_table, csv_partitioning_table, csv_file_name)
+    print(f"Данные о серверах были сохранены в файл {csv_file_name}")
