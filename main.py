@@ -29,10 +29,10 @@ def input_yes_no(question):
         elif input_answer in ['no', 'n', 'нет', 'н', '']:
             return False
         else:
-            print('Некорректный ввод. Повторите попытку.\n')
+            print(f"{RED}Некорректный ввод.{RESET} Повторите попытку.\n")
 
 #ввод целого числа при выборе
-def input_choise(question, max_option):
+def input_choise_digit(question, max_option):
     print(question)
     while True:
         try:
@@ -40,65 +40,72 @@ def input_choise(question, max_option):
             if input_digit in range(1, max_option + 1):
                 return input_digit
             else:
-                print(f"Некорректный ввод. Введите число от 1 до {max_option}: ")
+                print(f"{RED}Некорректный ввод.{RESET} Введите число от 1 до {max_option}: ")
         except:
-            print(f"Некорректный ввод. Ожидалось целое число от 1 до {max_option}: ")
+            print(f"{RED}Некорректный ввод.{RESET} Ожидалось целое число от 1 до {max_option}: ")
 
 #ввод проверка ввода любого целого числа
-def input_integer():
-    pass
+def input_integer_number(question):
+    while True:
+        try:
+            input_number = input(question)
+            if input_number == '':
+                return None
+            return int(input_number)
+        except:
+            print(f"Некорректный ввод. Ожидалось целое число.")
 
 #получить % отсечки для ПА для любого источника
 def get_dynamic_cutoff(default_value):
-    dynamic_cutoff = input(f"Введите примерный % заданий от общего количества, которые пойдут на динамический анализ (по умолчанию - {default_value}%): ")
-    dynamic_cutoff = float(dynamic_cutoff) / 100 if dynamic_cutoff != '' else default_value / 100
+    dynamic_cutoff = input_integer_number(f"Введите примерный % заданий от общего количества, которые пойдут на динамический анализ (по умолчанию - {default_value}%): ")
+    dynamic_cutoff = float(dynamic_cutoff) / 100 if dynamic_cutoff is not None else default_value / 100
     return dynamic_cutoff
 
 #получить % отсечки по префильтру для любого источника
 def get_prefilter_cutoff(default_value):
-    prefilter_cutoff = input(f"Введите примерный % заданий от задаий ПА, которые останутся после префильтрации (по умолчанию - {default_value}%): ")
-    prefilter_cutoff = float(prefilter_cutoff) / 100 if prefilter_cutoff != '' else default_value / 100
+    prefilter_cutoff = input_integer_number(f"Введите примерный % заданий от задаий ПА, которые останутся после префильтрации (по умолчанию - {default_value}%): ")
+    prefilter_cutoff = float(prefilter_cutoff) / 100 if prefilter_cutoff is not None else default_value / 100
     return prefilter_cutoff
 
 #получить % отсечки по кэшированию для любого источника
 def get_cache_cutoff(default_value):
-    cache_cutoff = input(f"Введите примерный % заданий от задаий ПА, которые останутся после отброса кэшированием (по умолчанию - {default_value }%): ")
-    cache_cutoff = float(cache_cutoff) / 100 if cache_cutoff != '' else default_value / 100
+    cache_cutoff = input_integer_number(f"Введите примерный % заданий от задаий ПА, которые останутся после отброса кэшированием (по умолчанию - {default_value }%): ")
+    cache_cutoff = float(cache_cutoff) / 100 if cache_cutoff is not None else default_value / 100
     return cache_cutoff
 
 #получить время сканирования для любого источника
 def get_time_to_scan(default_value):
-    input_scan_time = input(f"Введите время в секундах, как долго будут сканироваться задания с этого источника (по умолчанию - {default_value}): ")
-    input_scan_time = int(input_scan_time) if input_scan_time != '' else default_value
+    input_scan_time = input_integer_number(f"Введите время в секундах, как долго будут сканироваться задания с этого источника (по умолчанию - {default_value}): ")
+    input_scan_time = input_scan_time if input_scan_time is not None else default_value
     return input_scan_time
 
 #расчет нагрузки с почтового трафика
 def get_smtp_load(smtp_load_parameters):
     
     if smtp_load_parameters['mails'] == 0: #эквивалентно тому, что количество писем в час - неизвестно
-        input_users_multiplier = input(f"Ввведите количество писем на 1 пользователя (по умолчанию - {smtp_load_parameters['users_multiplier']}): ")
-        if input_users_multiplier != '':
-            smtp_load_parameters['users_multiplier'] = int(input_users_multiplier)
+        input_users_multiplier = input_integer_number(f"Ввведите количество писем на 1 пользователя (по умолчанию - {smtp_load_parameters['users_multiplier']}): ")
+        if input_users_multiplier is not None:
+            smtp_load_parameters['users_multiplier'] = input_users_multiplier
         smtp_load_parameters['mails'] = smtp_load_parameters['users'] * smtp_load_parameters['users_multiplier']
-        input_mails_with_attachments = input('Введите примерный % писем от общего количества, которые предположительно содержат вложения '
+        input_mails_with_attachments = input_integer_number('Введите примерный % писем от общего количества, которые предположительно содержат вложения '
                                              f"(по умолчанию - {smtp_load_parameters['mails_with_attachments']}%): ")
-        if input_mails_with_attachments != '':
+        if input_mails_with_attachments is not None:
             smtp_load_parameters['mails_with_attachments'] = float(input_mails_with_attachments) / 100.0
         smtp_load_parameters['mails_with_attachments'] = math.ceil(smtp_load_parameters['mails'] * smtp_load_parameters['mails_with_attachments'])
     else:
         if input_yes_no('Известно ли количетсво писем в час, содержащих вложения?'):
-            smtp_load_parameters['mails_with_attachments'] = int(input('Введите количество писем в час, которые содержат вложения: '))
+            smtp_load_parameters['mails_with_attachments'] = input_integer_number('Введите количество писем в час, которые содержат вложения: ')
         else:
-            input_mails_with_attachments = input('Введите примерный % писем от общего количества, которые предположительно содержат вложения '
+            input_mails_with_attachments = input_integer_number('Введите примерный % писем от общего количества, которые предположительно содержат вложения '
                                                  f"(по умолчанию - {smtp_load_parameters['mails_with_attachments']}%): ")
-            if input_mails_with_attachments != '':
+            if input_mails_with_attachments is not None:
                 smtp_load_parameters['mails_with_attachments'] = float(input_mails_with_attachments) / 100.0
             smtp_load_parameters['mails_with_attachments'] = math.ceil(smtp_load_parameters['mails'] * smtp_load_parameters['mails_with_attachments'])           
 
-    input_attachments_per_mail = input('Введите количество вложений на 1 письмо, содержащее вложения '
+    input_attachments_per_mail = input_integer_number('Введите количество вложений на 1 письмо, содержащее вложения '
                                        f"(по умолчанию - {smtp_load_parameters['attachments_per_mail']}): ")
-    if input_attachments_per_mail != '':
-        smtp_load_parameters['attachments_per_mail'] = int(input_attachments_per_mail)
+    if input_attachments_per_mail is not None:
+        smtp_load_parameters['attachments_per_mail'] = input_attachments_per_mail
     
     smtp_load_parameters['dynamic_cutoff'] = get_dynamic_cutoff(smtp_load_parameters['dynamic_cutoff'])
     smtp_load_parameters['prefilter_cutoff'] = get_prefilter_cutoff(smtp_load_parameters['prefilter_cutoff'])
@@ -141,9 +148,9 @@ def get_icap_load(icap_load_parameters):
 def get_edr_load(edr_load_parameters):
     
     if edr_load_parameters['files'] == 0:
-        agents_multiplier = input(f"Введите примерное количество файлов с 1 агента edr (по умолчанию - {edr_load_parameters['agents_multiplier']}): ")
-        if agents_multiplier != '':
-            edr_load_parameters['agents_multiplier'] = int(agents_multiplier)
+        agents_multiplier = input_integer_number(f"Введите примерное количество файлов с 1 агента edr (по умолчанию - {edr_load_parameters['agents_multiplier']}): ")
+        if agents_multiplier is not None:
+            edr_load_parameters['agents_multiplier'] = agents_multiplier
         edr_load_parameters['files'] = edr_load_parameters['agents'] * edr_load_parameters ['agents_multiplier']    
 
     edr_load_parameters['dynamic_cutoff'] = get_dynamic_cutoff(edr_load_parameters['dynamic_cutoff'])
@@ -298,11 +305,10 @@ def get_all_additional_servers(vms_all, vms_per_server):
     dynamic_servers_list = []
     dynamic_servers_amount = math.ceil(vms_all / vms_per_server)
     print('\n───────────────────Расчет ТХ для доп. серверов динамики─────────────────────')
-    input_calculation_type = input(
+    input_calculation_type = input_choise_digit(
                                     f"1. Расчет ТХ для {dynamic_servers_amount} доп серверов(-а) под общее количество ВМ {vms_all} (не более {vms_per_server} ВМ на сервер)\n"
-                                    '2. Вручную ввести количество дополнительных серверов и количество ВМ для каждого сервера\n'
-                                    'Введите цифру, соответствующую необходимым расчетам ТХ для серверов с динамикой: ')
-    if input_calculation_type == '1':
+                                    '2. Вручную ввести количество дополнительных серверов и количество ВМ для каждого сервера', 2)
+    if input_calculation_type == 1:
         vms_left = vms_all
         while (vms_left > 0):
             if (vms_left > vms_per_server):
@@ -310,11 +316,11 @@ def get_all_additional_servers(vms_all, vms_per_server):
             else:
                 dynamic_servers_list.append(calculate_additional_server_with_vms(vms_left))
             vms_left -= vms_per_server
-    elif input_calculation_type == '2':
+    elif input_calculation_type == 2:
         print('\n────────────────Ручная конфигурация доп. серверов динамики──────────────────')
-        dynamic_servers_amount = int(input('Введите количество дополнительных серверов: '))
+        dynamic_servers_amount = input_integer_number('Введите количество дополнительных серверов: ')
         for i in range(dynamic_servers_amount):
-            dynamic_servers_list.append(calculate_additional_server_with_vms(int(input(f"Введите количество ВМ для {i+1}-го доп. сервера динамики: "))))
+            dynamic_servers_list.append(calculate_additional_server_with_vms(input_integer_number(f"Введите количество ВМ для {i+1}-го доп. сервера динамики: ")))
     return dynamic_servers_list
 
 #замена всех 0 на 'Не требуется'
@@ -439,7 +445,7 @@ if __name__ == '__main__':
     }
 
     #вопрос о выборе типа расчета инсталляции
-    input_calculation_type = input_choise('\nДоступные варианты расчета технических характеристик под сервера PT SB:\n'
+    input_calculation_type = input_choise_digit('\nДоступные варианты расчета технических характеристик под сервера PT SB:\n'
           '1. Расчет ТХ серверов (а также их количества) на основании известных или около известных показателей нагрузки с разлиичных источников\n'
           '2. Расчет ТХ серверов (а также их количества) на основании вручную вводимых показателей нагрузки на статику и динамику в час\n'
           '3. Полностью ручный расчет ТХ серверов на основании вручную вводимого количества ВМ на сервер и количества серверов', 3)
@@ -449,46 +455,46 @@ if __name__ == '__main__':
         print('────────────────────────Электронная почта организации────────────────────────')
         if input_yes_no('Будет ли использоваться проверка почты?'):
             if(input_yes_no('Известно ли количество писем в час?')):
-                smtp_load_parameters['mails'] = int(input('Ввведите количество писем в час: '))
+                smtp_load_parameters['mails'] = input_integer_number('Ввведите количество писем в час: ')
             else:
-                smtp_load_parameters['users'] = int(input('Ввведите количество пользователей: '))
+                smtp_load_parameters['users'] = input_integer_number('Ввведите количество пользователей: ')
             smtp_load_parameters = get_smtp_load(smtp_load_parameters)
 
         #сетевой ICAP источник
         print('\n───────────────────────────Сетевой трафик по ICAP───────────────────────────')
         if input_yes_no('Будет ли использоваться проверка по ICAP?'):
             if input_yes_no('Известно ли количество файлов в трафике в час?'):
-                icap_load_parameters['files'] = int(input('Введите количество файлов в час: '))
+                icap_load_parameters['files'] = input_integer_number('Введите количество файлов в час: ')
             else:
-                icap_load_parameters['speed'] = int(input('Введите скорость трафика в Мбит/с: '))
+                icap_load_parameters['speed'] = input_integer_number('Введите скорость трафика в Мбит/с: ')
             icap_load_parameters = get_icap_load(icap_load_parameters)
 
         #агенты MP 10 EDR
         print('\n──────────────────────────Файлы с агентов MP 10 EDR─────────────────────────')
         if input_yes_no('Будет ли использоваться проверка с агентов MP 10 EDR?'):
             if input_yes_no('Известно ли общее количество файлов со всех агентов в час?'):
-                edr_load_parameters['files'] = int(input('Введите количество файлов в час: '))
+                edr_load_parameters['files'] = input_integer_number('Введите количество файлов в час: ')
             else:
-                edr_load_parameters['agents'] = int(input('Введите количество агентов: '))
+                edr_load_parameters['agents'] = input_integer_number('Введите количество агентов: ')
             edr_load_parameters = get_edr_load(edr_load_parameters)
 
         #API с предустановленными параметрами проверки
         print('\n────────────────────────Источник API из веб-интерейса───────────────────────')
         if input_yes_no('Будет ли использоваться проверка по API с параметрами источника?'):
-            automated_api_load_parameters['files'] = int(input('Введите примерное количество файлов в час: '))
+            automated_api_load_parameters['files'] = input_integer_number('Введите примерное количество файлов в час: ')
             automated_api_load_parameters = get_automated_api_load(automated_api_load_parameters)
         
         #API с пользовательскими параметрами проверки
         print('\n───────────────────────────Ручная загрузка по API───────────────────────────')
         if input_yes_no('Будет ли использоваться проверка по API с пользовательскими параметрами?'):
-            manual_api_load_parameters['files'] = int(input('Ввведите примерное количество файлов в час: '))
+            manual_api_load_parameters['files'] = input_integer_number('Ввведите примерное количество файлов в час: ')
             manual_api_load_parameters = get_manual_api_load(manual_api_load_parameters)
         
         #Файловое хранилище
         print('\n──────────────────────────────Хранилище файлов──────────────────────────────')
         if input_yes_no('Будет ли использоваться проверка файлового хранилища?'):
-            storage_load_parameters['files'] = int(input('Введите количество файлов в час, которые будут проверяться статикой: '))
-            storage_load_parameters['dynamic_load'] = int(input('Введите количество файлов, которые будут проверяться динамикой: '))
+            storage_load_parameters['files'] = input_integer_number('Введите количество файлов в час, которые будут проверяться статикой: ')
+            storage_load_parameters['dynamic_load'] = input_integer_number('Введите количество файлов, которые будут проверяться динамикой: ')
             storage_load_parameters = get_storage_load(storage_load_parameters)
             pass
 
@@ -531,17 +537,17 @@ if __name__ == '__main__':
     elif input_calculation_type == 2:
         print('\n\n══════════════════════════Ручной ввод показателей═══════════════════════════')
         print('────────────────────────────Показатели нагрузки─────────────────────────────')
-        installation_parameters['overall_static'] = int(input('Ввведите примерное количество статических заданий в час: '))
-        installation_parameters['overall_dynamic'] = int(input('Ввведите примерное количество динамических заданий в час после всех отсечек: '))
+        installation_parameters['overall_static'] = input_integer_number('Ввведите примерное количество статических заданий в час: ')
+        installation_parameters['overall_dynamic'] = input_integer_number('Ввведите примерное количество динамических заданий в час после всех отсечек: ')
         print('\n──────────────────────────Количество ВМ на стенде───────────────────────────')
-        input_vm_calculation_type = input_choise(
+        input_vm_calculation_type = input_choise_digit(
                 'Доступные варианты выбора количества виртуальных машин на инсталляцию:\n'
                 '1. Ввести общее количество ВМ на всю инсталляцию вручную\n'
                 '2. Рассчитать на основании нагрузки на динамику и времени сканирования на 1 файл', 2)
         if input_vm_calculation_type == 1:
-            installation_parameters['vms_all'] = int(input('Ввведите общее количество ВМ на всю инсталляцию: '))
+            installation_parameters['vms_all'] = input_integer_number('Ввведите общее количество ВМ на всю инсталляцию: ')
         elif input_vm_calculation_type == 2:
-            installation_parameters['time_to_scan'] = int(input('Введите время сканирования 1 файла в секундах: '))
+            installation_parameters['time_to_scan'] = input_integer_number('Введите время сканирования 1 файла в секундах: ')
             installation_parameters['vms_all'] = math.ceil(installation_parameters['overall_dynamic'] * installation_parameters['time_to_scan'] / 3600)
             print('\nРасчитанное количество ВМ на стенде: ', installation_parameters['vms_all'])
         if installation_parameters['vms_all'] > installation_parameters['vms_per_server']:
@@ -553,38 +559,39 @@ if __name__ == '__main__':
         print('\n\n══════════════════════════Ручной ввод показателей═══════════════════════════')
         print('────────────────────────────Показатели нагрузки─────────────────────────────')
         if installation_parameters['overall_static'] == 0:
-            input_overall_static = input('Для расчета ТХ серверов управления требуется указать примерное количество статических заданий в час: ')
-            installation_parameters['overall_static'] = int(input_overall_static)   
+            input_overall_static = input_integer_number('Для расчета ТХ серверов управления требуется указать примерное количество статических заданий в час: ')
+            installation_parameters['overall_static'] = input_overall_static   
         pass
     
     print('\n\n════════════════════════Расчет конфигурации серверов════════════════════════')
     #вопрос про iso для расчета необходимого места
     print('──────────────────────────Расчет места под образы───────────────────────────')
-    input_iso_amount = input("Введите количество базовых образов, которые будут установлены на стенде."
+    input_iso_amount = input_integer_number("Введите количество базовых образов, которые будут установлены на стенде."
                             f"\nВажно: образ это не то же самое, что виртуальная машина. (По умолчанию - {installation_parameters['iso_amount']}): ")
-    if input_iso_amount != '':
-        installation_parameters['iso_amount'] = int(input_iso_amount)
+    if input_iso_amount is not None:
+        installation_parameters['iso_amount'] = input_iso_amount
 
     #вопрос о выборе конфигурации
     print('\n──────────────────────Выбор конфигурации инсталляции────────────────────────')
-    inpit_installation_type = input_choise(
+    inpit_installation_type = input_choise_digit(
                 '1. All in one на одном сервере;\n'
                 '2. Высоконагруженная конфигурация. При этом, на сервере управления также поддерживаются динамические исследования;\n'
                 '3. Высоконагруженная конфигурация. При этом, на сервере управления не устанавливаются компоненты Xen и не используются динамические исследования;\n'
                 '4. Отказоустойчивый кластер.', 4)
+    
     #расчет конфигурации AiO инсталляции
     if inpit_installation_type == 1:
         if (installation_parameters['vms_all'] <= 15):
-            vms_all = input(f"\nВведите количество ВМ для сервера AiO (по умолчанию будет использоваться рекомендованное значение - {installation_parameters['vms_all']}): ")
-            if vms_all != '':
-                installation_parameters['vms_all'] = int(vms_all)
+            vms_all = input_integer_number(f"\nВведите количество ВМ для сервера AiO (по умолчанию будет использоваться рекомендованное значение - {installation_parameters['vms_all']}): ")
+            if vms_all is not None:
+                installation_parameters['vms_all'] = vms_all
         else:
-            vms_all = input(f"\n{RED}Внимание!{RESET} Для AiO инсталляции поддерживается не более {installation_parameters['vms_per_server']} ВМ на хост. "
+            vms_all = input_integer_number(f"\n{RED}Внимание!{RESET} Для AiO инсталляции поддерживается не более {installation_parameters['vms_per_server']} ВМ на хост. "
                             f"Рассчитанное рекомендованное ранее значние: {RED}{installation_parameters['vms_all']}{RESET}.\n"
                             "Введите количество ВМ, на которое рассчитывается AiO инсталляция"
                             f" (по умолчанию будет использоваться максимальное возможное значение - {installation_parameters['vms_per_server']}): ")
-            if vms_all != '':
-                installation_parameters['vms_all'] = int(vms_all)
+            if vms_all is not None:
+                installation_parameters['vms_all'] = vms_all
         servers_list.append(calculate_master_with_dynamic(installation_parameters['vms_all'], installation_parameters['iso_amount']))
     
     #расчет конфигурации высоконагруженной инсталляции, узел управления с ПА    
@@ -597,7 +604,7 @@ if __name__ == '__main__':
         vms_on_master = installation_parameters['vms_all'] - all_vms_on_dynamics
         #расчет ТХ сервера управления с функцией ПА
         print('\n─────────────────────Расчет ТХ для сервера управления───────────────────────')
-        input_masters_installation_type = input_choise(
+        input_masters_installation_type = input_choise_digit(
                         f"1. Расчет ТХ под сервер управления с {installation_parameters['vms_per_server']} ВМ (максимально возможным числом);\n"
                         f"2. Расчет ТХ под сервер управления с {vms_on_master} ВМ (тогда на каждом доп. сервере будет равное максимально количество ВМ);\n"
                         f"3. Вручную ввести количество ВМ для сервера управления с функцией ПА", 3)
@@ -607,7 +614,7 @@ if __name__ == '__main__':
         elif input_masters_installation_type == 2:
             servers_list.append(calculate_master_with_dynamic(vms_on_master, installation_parameters['iso_amount']))
         elif input_masters_installation_type == 3:
-            vms_on_master = int(input('Введите количество ВМ для сервера управления с функцией ПА: '))
+            vms_on_master = input_integer_number('Введите количество ВМ для сервера управления с функцией ПА: ')
             servers_list.append(calculate_master_with_dynamic(vms_on_master, installation_parameters['iso_amount']))
         all_vms_on_dynamics = installation_parameters['vms_all'] - vms_on_master
 
@@ -625,7 +632,7 @@ if __name__ == '__main__':
     elif inpit_installation_type == 4:
         #расчет серверов управления без динамики в отказоустойчивом кластере
         print('\n──────────────────────Расчет кол-ва серверов управления─────────────────────')
-        input_masters_amount = int(input('Введите количество серверов управления в данной инсталляции (нечетное число): '))
+        input_masters_amount = input_integer_number('Введите количество серверов управления в данной инсталляции (нечетное число): ')
         for i in range(input_masters_amount):
             servers_list.append(calculate_master_without_dynamic(installation_parameters['iso_amount'], installation_parameters['overall_static']))
         #расчет дополнительных серверов с динамикой
@@ -635,8 +642,8 @@ if __name__ == '__main__':
     #предварительная обработка серверов перед выводом
     servers_list = [replace_zero_with_message(server) for server in servers_list]
 
-    print('\n\n═══════════════════════Итоговые значения для серверов═══════════════════════')
     #вывод данных в консоль о серверах по общем ТХ серверов системы
+    print('\n\n═══════════════════════Итоговые значения для серверов═══════════════════════')
     fields_for_parameters = ['theads_amount', 'ram_amount', 'ssd_size', 'hdd_size']
     first_column_fields_parameters = ['Процессор 2.2 Ггц, потоков', 'Память ОЗУ, Гб', 'SSD, Гб', 'HDD, Гб']
     technical_requirements_table = generate_table(servers_list, fields_for_parameters, '\nПараметры сервера', first_column_fields_parameters)
