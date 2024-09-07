@@ -20,7 +20,7 @@ RESET = '\033[0m'  #сброс на дефолт
 
 #FUNCS
 #согласие на ввод
-def get_yes_no_input(question):
+def input_yes_no(question):
     #print(question)
     while True:
         input_answer = input(f'{question} [Yes, Y, Да, Д| / [No, N, Нет, Н]: ').strip().lower()
@@ -30,6 +30,23 @@ def get_yes_no_input(question):
             return False
         else:
             print('Некорректный ввод. Повторите попытку.\n')
+
+#ввод целого числа при выборе
+def input_choise(question, max_option):
+    print(question)
+    while True:
+        try:
+            input_digit = int(input('Введите цифру, соответствующую необходимому варианту: '))
+            if input_digit in range(1, max_option + 1):
+                return input_digit
+            else:
+                print(f"Некорректный ввод. Введите число от 1 до {max_option}: ")
+        except:
+            print(f"Некорректный ввод. Ожидалось целое число от 1 до {max_option}: ")
+
+#ввод проверка ввода любого целого числа
+def input_integer():
+    pass
 
 #получить % отсечки для ПА для любого источника
 def get_dynamic_cutoff(default_value):
@@ -69,7 +86,7 @@ def get_smtp_load(smtp_load_parameters):
             smtp_load_parameters['mails_with_attachments'] = float(input_mails_with_attachments) / 100.0
         smtp_load_parameters['mails_with_attachments'] = math.ceil(smtp_load_parameters['mails'] * smtp_load_parameters['mails_with_attachments'])
     else:
-        if get_yes_no_input('Известно ли количетсво писем в час, содержащих вложения?'):
+        if input_yes_no('Известно ли количетсво писем в час, содержащих вложения?'):
             smtp_load_parameters['mails_with_attachments'] = int(input('Введите количество писем в час, которые содержат вложения: '))
         else:
             input_mails_with_attachments = input('Введите примерный % писем от общего количества, которые предположительно содержат вложения '
@@ -422,17 +439,16 @@ if __name__ == '__main__':
     }
 
     #вопрос о выборе типа расчета инсталляции
-    input_calculation_type = input('\nДоступные варианты расчета технических характеристик под сервера PT SB:\n'
+    input_calculation_type = input_choise('\nДоступные варианты расчета технических характеристик под сервера PT SB:\n'
           '1. Расчет ТХ серверов (а также их количества) на основании известных или около известных показателей нагрузки с разлиичных источников\n'
           '2. Расчет ТХ серверов (а также их количества) на основании вручную вводимых показателей нагрузки на статику и динамику в час\n'
-          '3. Полностью ручный расчет ТХ серверов на основании вручную вводимого количества ВМ на сервер и количества серверов\n'
-          'Введите цифру, соответствующую необходимому варианту: ')
-    if input_calculation_type == '1':
+          '3. Полностью ручный расчет ТХ серверов на основании вручную вводимого количества ВМ на сервер и количества серверов', 3)
+    if input_calculation_type == 1:
         print('\n═════════════════════════Расчет нагрузки с источников════════════════════════')
         #smtp источник
         print('────────────────────────Электронная почта организации────────────────────────')
-        if get_yes_no_input('Будет ли использоваться проверка почты?'):
-            if(get_yes_no_input('Известно ли количество писем в час?')):
+        if input_yes_no('Будет ли использоваться проверка почты?'):
+            if(input_yes_no('Известно ли количество писем в час?')):
                 smtp_load_parameters['mails'] = int(input('Ввведите количество писем в час: '))
             else:
                 smtp_load_parameters['users'] = int(input('Ввведите количество пользователей: '))
@@ -440,8 +456,8 @@ if __name__ == '__main__':
 
         #сетевой ICAP источник
         print('\n───────────────────────────Сетевой трафик по ICAP───────────────────────────')
-        if get_yes_no_input('Будет ли использоваться проверка по ICAP?'):
-            if get_yes_no_input('Известно ли количество файлов в трафике в час?'):
+        if input_yes_no('Будет ли использоваться проверка по ICAP?'):
+            if input_yes_no('Известно ли количество файлов в трафике в час?'):
                 icap_load_parameters['files'] = int(input('Введите количество файлов в час: '))
             else:
                 icap_load_parameters['speed'] = int(input('Введите скорость трафика в Мбит/с: '))
@@ -449,8 +465,8 @@ if __name__ == '__main__':
 
         #агенты MP 10 EDR
         print('\n──────────────────────────Файлы с агентов MP 10 EDR─────────────────────────')
-        if get_yes_no_input('Будет ли использоваться проверка с агентов MP 10 EDR?'):
-            if get_yes_no_input('Известно ли общее количество файлов со всех агентов в час?'):
+        if input_yes_no('Будет ли использоваться проверка с агентов MP 10 EDR?'):
+            if input_yes_no('Известно ли общее количество файлов со всех агентов в час?'):
                 edr_load_parameters['files'] = int(input('Введите количество файлов в час: '))
             else:
                 edr_load_parameters['agents'] = int(input('Введите количество агентов: '))
@@ -458,19 +474,19 @@ if __name__ == '__main__':
 
         #API с предустановленными параметрами проверки
         print('\n────────────────────────Источник API из веб-интерейса───────────────────────')
-        if get_yes_no_input('Будет ли использоваться проверка по API с параметрами источника?'):
+        if input_yes_no('Будет ли использоваться проверка по API с параметрами источника?'):
             automated_api_load_parameters['files'] = int(input('Введите примерное количество файлов в час: '))
             automated_api_load_parameters = get_automated_api_load(automated_api_load_parameters)
         
         #API с пользовательскими параметрами проверки
         print('\n───────────────────────────Ручная загрузка по API───────────────────────────')
-        if get_yes_no_input('Будет ли использоваться проверка по API с пользовательскими параметрами?'):
+        if input_yes_no('Будет ли использоваться проверка по API с пользовательскими параметрами?'):
             manual_api_load_parameters['files'] = int(input('Ввведите примерное количество файлов в час: '))
             manual_api_load_parameters = get_manual_api_load(manual_api_load_parameters)
         
         #Файловое хранилище
         print('\n──────────────────────────────Хранилище файлов──────────────────────────────')
-        if get_yes_no_input('Будет ли использоваться проверка файлового хранилища?'):
+        if input_yes_no('Будет ли использоваться проверка файлового хранилища?'):
             storage_load_parameters['files'] = int(input('Введите количество файлов в час, которые будут проверяться статикой: '))
             storage_load_parameters['dynamic_load'] = int(input('Введите количество файлов, которые будут проверяться динамикой: '))
             storage_load_parameters = get_storage_load(storage_load_parameters)
@@ -512,19 +528,19 @@ if __name__ == '__main__':
         else:
             print(f"Использование инсталляции AiO: {GREEN}Возможно{RESET}")
 
-    elif input_calculation_type == '2':
+    elif input_calculation_type == 2:
         print('\n\n══════════════════════════Ручной ввод показателей═══════════════════════════')
         print('────────────────────────────Показатели нагрузки─────────────────────────────')
         installation_parameters['overall_static'] = int(input('Ввведите примерное количество статических заданий в час: '))
         installation_parameters['overall_dynamic'] = int(input('Ввведите примерное количество динамических заданий в час после всех отсечек: '))
         print('\n──────────────────────────Количество ВМ на стенде───────────────────────────')
-        input_vm_calculation_type = input('Доступные варианты выбора количества виртуальных машин на инсталляцию:\n'
-              '1. Ввести общее количество ВМ на всю инсталляцию вручную\n'
-              '2. Рассчитать на основании нагрузки на динамику и времени сканирования на 1 файл\n'
-              'Введите цифру, соответствующую необходимимому варианту: ')
-        if input_vm_calculation_type == '1':
+        input_vm_calculation_type = input_choise(
+                'Доступные варианты выбора количества виртуальных машин на инсталляцию:\n'
+                '1. Ввести общее количество ВМ на всю инсталляцию вручную\n'
+                '2. Рассчитать на основании нагрузки на динамику и времени сканирования на 1 файл', 2)
+        if input_vm_calculation_type == 1:
             installation_parameters['vms_all'] = int(input('Ввведите общее количество ВМ на всю инсталляцию: '))
-        elif input_vm_calculation_type == '2':
+        elif input_vm_calculation_type == 2:
             installation_parameters['time_to_scan'] = int(input('Введите время сканирования 1 файла в секундах: '))
             installation_parameters['vms_all'] = math.ceil(installation_parameters['overall_dynamic'] * installation_parameters['time_to_scan'] / 3600)
             print('\nРасчитанное количество ВМ на стенде: ', installation_parameters['vms_all'])
@@ -533,7 +549,7 @@ if __name__ == '__main__':
         else:
             print(f"Использование инсталляции AiO: {GREEN}Возможно{RESET}")
 
-    elif input_calculation_type == '3':
+    elif input_calculation_type == 3:
         print('\n\n══════════════════════════Ручной ввод показателей═══════════════════════════')
         print('────────────────────────────Показатели нагрузки─────────────────────────────')
         if installation_parameters['overall_static'] == 0:
@@ -551,14 +567,13 @@ if __name__ == '__main__':
 
     #вопрос о выборе конфигурации
     print('\n──────────────────────Выбор конфигурации инсталляции────────────────────────')
-    inpit_installation_type = input(
+    inpit_installation_type = input_choise(
                 '1. All in one на одном сервере;\n'
                 '2. Высоконагруженная конфигурация. При этом, на сервере управления также поддерживаются динамические исследования;\n'
                 '3. Высоконагруженная конфигурация. При этом, на сервере управления не устанавливаются компоненты Xen и не используются динамические исследования;\n'
-                '4. Отказоустойчивый кластер.\n'
-                'Введите цифру, соответствующую нужной конфигурации инсталляции: ')
+                '4. Отказоустойчивый кластер.', 4)
     #расчет конфигурации AiO инсталляции
-    if inpit_installation_type == '1':
+    if inpit_installation_type == 1:
         if (installation_parameters['vms_all'] <= 15):
             vms_all = input(f"\nВведите количество ВМ для сервера AiO (по умолчанию будет использоваться рекомендованное значение - {installation_parameters['vms_all']}): ")
             if vms_all != '':
@@ -573,7 +588,7 @@ if __name__ == '__main__':
         servers_list.append(calculate_master_with_dynamic(installation_parameters['vms_all'], installation_parameters['iso_amount']))
     
     #расчет конфигурации высоконагруженной инсталляции, узел управления с ПА    
-    elif inpit_installation_type == '2':
+    elif inpit_installation_type == 2:
         #нужно серверов в принципе
         all_servers_needed = math.ceil(installation_parameters['vms_all'] / installation_parameters['vms_per_server'])
         #тогда всего ВМ на динамиках будет:
@@ -582,17 +597,16 @@ if __name__ == '__main__':
         vms_on_master = installation_parameters['vms_all'] - all_vms_on_dynamics
         #расчет ТХ сервера управления с функцией ПА
         print('\n─────────────────────Расчет ТХ для сервера управления───────────────────────')
-        input_masters_installation_type = input(
-                                                f"1. Расчет ТХ под сервер управления с {installation_parameters['vms_per_server']} ВМ (максимально возможным числом);\n"
-                                                f"2. Расчет ТХ под сервер управления с {vms_on_master} ВМ (тогда на каждом доп. сервере будет равное максимально количество ВМ);\n"
-                                                f"3. Вручную ввести количество ВМ для сервера управления с функцией ПА\n"
-                                                "Введите цифру, соответствующую нужной конфигурации для сервера управления с функцией ПА: ")
-        if input_masters_installation_type == '1':
+        input_masters_installation_type = input_choise(
+                        f"1. Расчет ТХ под сервер управления с {installation_parameters['vms_per_server']} ВМ (максимально возможным числом);\n"
+                        f"2. Расчет ТХ под сервер управления с {vms_on_master} ВМ (тогда на каждом доп. сервере будет равное максимально количество ВМ);\n"
+                        f"3. Вручную ввести количество ВМ для сервера управления с функцией ПА", 3)
+        if input_masters_installation_type == 1:
             vms_on_master = installation_parameters['vms_per_server']
             servers_list.append(calculate_master_with_dynamic(vms_on_master, installation_parameters['iso_amount']))
-        elif input_masters_installation_type == '2':
+        elif input_masters_installation_type == 2:
             servers_list.append(calculate_master_with_dynamic(vms_on_master, installation_parameters['iso_amount']))
-        elif input_masters_installation_type == '3':
+        elif input_masters_installation_type == 3:
             vms_on_master = int(input('Введите количество ВМ для сервера управления с функцией ПА: '))
             servers_list.append(calculate_master_with_dynamic(vms_on_master, installation_parameters['iso_amount']))
         all_vms_on_dynamics = installation_parameters['vms_all'] - vms_on_master
@@ -601,14 +615,14 @@ if __name__ == '__main__':
         servers_list.extend(get_all_additional_servers(all_vms_on_dynamics, installation_parameters['vms_per_server']))
     
     #расчет конфигурации высоконагруженной инсталляции, узел управления без ПА
-    elif inpit_installation_type == '3':
+    elif inpit_installation_type == 3:
         #расчет ТХ 1 сервера управления без функции ПА
         servers_list.append(calculate_master_without_dynamic(installation_parameters['iso_amount'], installation_parameters['overall_static']))
         #расчет ТХ доп. серверов с функцией ПА
         servers_list.extend(get_all_additional_servers(installation_parameters['vms_all'], installation_parameters['vms_per_server']))
 
     #расчет конфигурации отказоуйстойчивого кластера
-    elif inpit_installation_type == '4':
+    elif inpit_installation_type == 4:
         #расчет серверов управления без динамики в отказоустойчивом кластере
         print('\n──────────────────────Расчет кол-ва серверов управления─────────────────────')
         input_masters_amount = int(input('Введите количество серверов управления в данной инсталляции (нечетное число): '))
