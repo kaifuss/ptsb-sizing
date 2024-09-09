@@ -365,9 +365,10 @@ def output_to_txt(tech_req_table, partition_table, filename):
 #вывод данных по стенду в файл csv
 def output_to_csv(tech_req_table, partition_table, filename):
     with open(filename, mode='w', newline='', encoding='windows-1251') as output_file:
-        writer = csv.writer(output_file)
+        writer = csv.writer(output_file, delimiter=';')
         writer.writerow(['Таблица с техническими требованиями к серверам:'])
         writer.writerows(tech_req_table)
+        writer.writerow([''])
         writer.writerow(['Таблица с разметкой дискового пространства серверов:'])
         writer.writerows(partition_table)
 
