@@ -54,7 +54,7 @@ def input_integer_number(question):
                 return None
             return int(input_number)
         except:
-            print(f"Некорректный ввод. Ожидалось целое число.")
+            print(f"{RED}Некорректный ввод.{RESET} Ожидалось целое число.")
 
 #получить % отсечки для ПА для любого источника
 def get_dynamic_cutoff(default_value):
