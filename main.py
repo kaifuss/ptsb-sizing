@@ -80,12 +80,6 @@ def get_time_to_scan(default_value):
     input_scan_time = input_scan_time if input_scan_time is not None else default_value
     return input_scan_time
 
-#получить количество образов, на которых будет сканироваться каждый файл
-def get_iso_amount_per_file(default_value):
-    input_iso_amount = input_integer_number(f"Введите количество образов ВМ, на которых будет сканироваться каждый файл с этого источника (по умолчанию - {default_value}): ")
-    input_iso_amount = input_iso_amount if input_iso_amount is not None else default_value
-    return input_iso_amount
-
 #расчет нагрузки с почтового трафика
 def get_smtp_load(smtp_load_parameters):
     
@@ -118,12 +112,10 @@ def get_smtp_load(smtp_load_parameters):
     smtp_load_parameters['prefilter_cutoff'] = get_prefilter_cutoff(smtp_load_parameters['prefilter_cutoff'])
     smtp_load_parameters['cache_cutoff'] = get_cache_cutoff(smtp_load_parameters['cache_cutoff'])
     smtp_load_parameters['time_to_scan'] = get_time_to_scan(smtp_load_parameters['time_to_scan'])
-    smtp_load_parameters['iso_amount'] = get_iso_amount_per_file(smtp_load_parameters['iso_amount'])
 
     smtp_load_parameters['dynamic_load'] = ( math.ceil(
         smtp_load_parameters['mails_with_attachments'] *
         smtp_load_parameters['attachments_per_mail'] *
-        smtp_load_parameters['iso_amount'] *
         smtp_load_parameters['dynamic_cutoff'] *
         smtp_load_parameters['prefilter_cutoff'] *
         smtp_load_parameters['cache_cutoff'])
@@ -139,14 +131,12 @@ def get_icap_load(icap_load_parameters):
     icap_load_parameters['prefilter_cutoff'] = get_prefilter_cutoff(icap_load_parameters['prefilter_cutoff'])
     icap_load_parameters['cache_cutoff'] = get_cache_cutoff(icap_load_parameters['cache_cutoff'])
     icap_load_parameters['time_to_scan'] = get_time_to_scan(icap_load_parameters['time_to_scan'])
-    icap_load_parameters['iso_amount'] = get_iso_amount_per_file(icap_load_parameters['iso_amount'])
 
     if icap_load_parameters['files'] == 0:
         icap_load_parameters['files'] = math.ceil( (7000 * icap_load_parameters['speed']) / 1024 )
     
     icap_load_parameters['dynamic_load'] = ( math.ceil(
         icap_load_parameters['files'] *
-        icap_load_parameters['iso_amount'] *
         icap_load_parameters['dynamic_cutoff'] *
         icap_load_parameters['prefilter_cutoff'] *
         icap_load_parameters['cache_cutoff'])
@@ -168,11 +158,9 @@ def get_edr_load(edr_load_parameters):
     edr_load_parameters['prefilter_cutoff'] = get_prefilter_cutoff(edr_load_parameters['prefilter_cutoff'])
     edr_load_parameters['cache_cutoff'] = get_cache_cutoff(edr_load_parameters['cache_cutoff'])
     edr_load_parameters['time_to_scan'] = get_time_to_scan(edr_load_parameters['time_to_scan'])
-    edr_load_parameters['iso_amount'] = get_iso_amount_per_file(edr_load_parameters['iso_amount'])
 
     edr_load_parameters['dynamic_load'] = ( math.ceil(
         edr_load_parameters['files'] *
-        edr_load_parameters['iso_amount'] *
         edr_load_parameters['dynamic_cutoff'] *
         edr_load_parameters['prefilter_cutoff'] *
         edr_load_parameters['cache_cutoff'])
@@ -188,11 +176,9 @@ def get_automated_api_load(automated_api_load_parameters):
     automated_api_load_parameters['prefilter_cutoff'] = get_prefilter_cutoff(automated_api_load_parameters['prefilter_cutoff'])
     automated_api_load_parameters['cache_cutoff'] = get_cache_cutoff(automated_api_load_parameters['cache_cutoff'])
     automated_api_load_parameters['time_to_scan'] = get_time_to_scan(automated_api_load_parameters['time_to_scan'])
-    automated_api_load_parameters['iso_amount'] = get_iso_amount_per_file(automated_api_load_parameters['iso_amount'])
 
     automated_api_load_parameters['dynamic_load'] = ( math.ceil(
         automated_api_load_parameters['files'] *
-        automated_api_load_parameters['iso_amount'] *
         automated_api_load_parameters['dynamic_cutoff'] *
         automated_api_load_parameters['prefilter_cutoff'] *
         automated_api_load_parameters['cache_cutoff'])
@@ -207,11 +193,9 @@ def get_manual_api_load(manual_api_load_parameters):
     manual_api_load_parameters['dynamic_cutoff'] = get_dynamic_cutoff(manual_api_load_parameters['dynamic_cutoff'])
     manual_api_load_parameters['cache_cutoff'] = get_cache_cutoff(manual_api_load_parameters['cache_cutoff'])
     manual_api_load_parameters['time_to_scan'] = get_time_to_scan(manual_api_load_parameters['time_to_scan'])
-    manual_api_load_parameters['iso_amount'] = get_iso_amount_per_file(manual_api_load_parameters['iso_amount'])
 
     manual_api_load_parameters['dynamic_load'] = ( math.ceil(
         manual_api_load_parameters['files'] *
-        manual_api_load_parameters['iso_amount'] *
         manual_api_load_parameters['dynamic_cutoff'] *
         manual_api_load_parameters['cache_cutoff'])
     )
@@ -224,11 +208,9 @@ def get_storage_load(storage_load_parameters):
     storage_load_parameters['prefilter_cutoff'] = get_prefilter_cutoff(storage_load_parameters['prefilter_cutoff'])
     storage_load_parameters['cache_cutoff'] = get_cache_cutoff(storage_load_parameters['cache_cutoff'])
     storage_load_parameters['time_to_scan'] = get_time_to_scan(storage_load_parameters['time_to_scan'])
-    storage_load_parameters['iso_amount'] = get_iso_amount_per_file(storage_load_parameters['iso_amount'])
 
     storage_load_parameters['dynamic_load'] = ( math.ceil(
         storage_load_parameters['dynamic_load'] *
-        storage_load_parameters['iso_amount'] *
         storage_load_parameters['prefilter_cutoff'] *
         storage_load_parameters['cache_cutoff'])
     )
@@ -421,7 +403,6 @@ if __name__ == '__main__':
         'prefilter_cutoff': 40,
         'cache_cutoff': 85,
         'time_to_scan': 150,
-        'iso_amount': 1,
         'dynamic_load': 0,
         'vms_needed': 0,
     }
@@ -434,7 +415,6 @@ if __name__ == '__main__':
         'prefilter_cutoff': 40,
         'cache_cutoff': 85,
         'time_to_scan': 150,
-        'iso_amount': 1,
         'dynamic_load': 0,
         'vms_needed': 0,
     }
@@ -448,7 +428,6 @@ if __name__ == '__main__':
         'prefilter_cutoff': 40,
         'cache_cutoff': 85,
         'time_to_scan': 150,
-        'iso_amount': 1,
         'dynamic_load': 0,
         'vms_needed': 0,
     }
@@ -460,7 +439,6 @@ if __name__ == '__main__':
         'prefilter_cutoff': 40,
         'cache_cutoff': 95,
         'time_to_scan': 150,
-        'iso_amount': 1,
         'dynamic_load': 0,
         'vms_needed': 0,
     }
@@ -471,7 +449,6 @@ if __name__ == '__main__':
         'dynamic_cutoff': 50,
         'cache_cutoff': 95,
         'time_to_scan': 150,
-        'iso_amount': 1,
         'dynamic_load': 0,
         'vms_needed': 0,
     }
@@ -482,7 +459,6 @@ if __name__ == '__main__':
         'prefilter_cutoff': 40,
         'cache_cutoff': 50,
         'time_to_scan': 150,
-        'iso_amount': 1,
         'dynamic_load': 0,
         'vms_needed': 0,
     }
