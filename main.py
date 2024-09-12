@@ -64,13 +64,13 @@ def get_dynamic_cutoff(default_value):
 
 #получить % отсечки по префильтру для любого источника
 def get_prefilter_cutoff(default_value):
-    prefilter_cutoff = input_integer_number(f"Введите примерный % заданий от задаий ПА, которые останутся после префильтрации (по умолчанию - {default_value}%): ")
+    prefilter_cutoff = input_integer_number(f"Введите примерный % заданий от заданий ПА, которые останутся после префильтрации (по умолчанию - {default_value}%): ")
     prefilter_cutoff = float(prefilter_cutoff) / 100 if prefilter_cutoff is not None else default_value / 100
     return prefilter_cutoff
 
 #получить % отсечки по кэшированию для любого источника
 def get_cache_cutoff(default_value):
-    cache_cutoff = input_integer_number(f"Введите примерный % заданий от задаий ПА, которые останутся после отброса кэшированием (по умолчанию - {default_value }%): ")
+    cache_cutoff = input_integer_number(f"Введите примерный % заданий от заданий ПА, которые останутся после отброса кэшированием (по умолчанию - {default_value }%): ")
     cache_cutoff = float(cache_cutoff) / 100 if cache_cutoff is not None else default_value / 100
     return cache_cutoff
 
@@ -465,9 +465,9 @@ if __name__ == '__main__':
 
     #вопрос о выборе типа расчета инсталляции
     input_calculation_type = input_choise_digit('\nДоступные варианты расчета технических характеристик под сервера PT SB:\n'
-          '1. Расчет ТХ серверов (а также их количества) на основании известных или около известных показателей нагрузки с разлиичных источников\n'
+          '1. Расчет ТХ серверов (а также их количества) на основании известных или около известных показателей нагрузки с различных источников\n'
           '2. Расчет ТХ серверов (а также их количества) на основании вручную вводимых показателей нагрузки на статику и динамику в час\n'
-          '3. Полностью ручный расчет ТХ серверов на основании вручную вводимого количества ВМ на сервер и количества серверов', 3)
+          '3. Полностью ручной расчет ТХ серверов на основании вручную вводимого количества ВМ на сервер и количества серверов', 3)
     if input_calculation_type == 1:
         print('\n═════════════════════════Расчет нагрузки с источников════════════════════════')
         #smtp источник
@@ -498,13 +498,13 @@ if __name__ == '__main__':
             edr_load_parameters = get_edr_load(edr_load_parameters)
 
         #API с предустановленными параметрами проверки
-        print('\n────────────────────────Источник API из веб-интерейса───────────────────────')
+        print('\n─────────────────Источник API c предустановленными параметрами────────────────')
         if input_yes_no('Будет ли использоваться проверка по API с параметрами источника?'):
             automated_api_load_parameters['files'] = input_integer_number('Введите примерное количество файлов в час: ')
             automated_api_load_parameters = get_automated_api_load(automated_api_load_parameters)
         
         #API с пользовательскими параметрами проверки
-        print('\n───────────────────────────Ручная загрузка по API───────────────────────────')
+        print('\n──────────────────Источник API c пользовательскими параметрами────────────────')
         if input_yes_no('Будет ли использоваться проверка по API с пользовательскими параметрами?'):
             manual_api_load_parameters['files'] = input_integer_number('Ввведите примерное количество файлов в час: ')
             manual_api_load_parameters = get_manual_api_load(manual_api_load_parameters)
