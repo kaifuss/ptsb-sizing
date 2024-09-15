@@ -235,10 +235,13 @@ def calculate_master_with_dynamic(vms_amount, iso_amount):
     server_parameters['minio_space'] = math.ceil((8 * iso_amount + 50) * 1.074)
     server_parameters['ssd_size'] = (
         server_parameters['root_space'] +
-        server_parameters['opt_space'] +
+        server_parameters['opt_space']
+    )
+    server_parameters['hdd_size'] = (
+        server_parameters['minio_space'] +
         server_parameters['home_space']
     )
-    server_parameters['hdd_size'] = server_parameters['minio_space']
+
     server_parameters['theads_amount'] = 3 * vms_amount + 9
     server_parameters['ram_amount'] = math.ceil((4 * vms_amount + 19) * 1.074)
     return server_parameters
@@ -259,10 +262,12 @@ def calculate_master_without_dynamic(iso_amount, static_tasks):
     server_parameters['minio_space'] = math.ceil((8 * iso_amount + 50) * 1.074)
     server_parameters['ssd_size'] = (
         server_parameters['root_space'] +
-        server_parameters['opt_space'] +
-        server_parameters['home_space']
+        server_parameters['opt_space']
     )
-    server_parameters['hdd_size'] = server_parameters['minio_space']    
+    server_parameters['hdd_size'] = (
+        server_parameters['minio_space'] +
+        server_parameters['home_space']
+    )    
     if static_tasks <= 100:
         server_parameters['theads_amount'] = 4
         server_parameters['ram_amount'] = 16
@@ -293,10 +298,12 @@ def calculate_additional_server_with_vms(vms_amount):
     server_parameters['opt_space'] = math.ceil(vms_amount * 15 * 1.074)
     server_parameters['ssd_size'] = (
         server_parameters['root_space'] +
-        server_parameters['opt_space'] +
+        server_parameters['opt_space']
+    )
+    server_parameters['hdd_size'] = (
+        server_parameters['minio_space'] +
         server_parameters['home_space']
     )
-    server_parameters['hdd_size'] = server_parameters['minio_space']
     server_parameters['theads_amount'] = 3 * vms_amount + 4
     server_parameters['ram_amount'] = math.ceil((vms_amount * 4 + 5) * 1.074)
     return server_parameters
@@ -667,7 +674,7 @@ if __name__ == '__main__':
     
     #генерация таблицы с разметкой для вывода в консоль и txt файл
     fields_for_partitioning = ['root_space', 'opt_space', 'minio_space', 'home_space']
-    first_column_fields_partitioning = ['/', '/opt', '/opt/ptms/var/minio', '/home'] 
+    first_column_fields_partitioning = ['/                    [SSD]', '/opt                 [SSD]', '/opt/ptms/var/minio  [HDD]', '/home                [HDD]'] 
     partitioning_table = generate_table('fancy', servers_list, fields_for_partitioning, '\nТочка монтирования', first_column_fields_partitioning)
 
     #генерация таблицы с ТХ для вывода в csv файл
