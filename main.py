@@ -67,6 +67,16 @@ def input_integer_number(question):
             print('\n \nПринудительный выход из скрипта.\n')
             exit()
 
+#проверка нечетности для отказоустойчивого кластера
+def input_odd_number(question):
+    while True:
+        input_amount = input_integer_number(question)
+        if (input_amount % 2 == 0) or (input_amount < 3):
+            print(f"{RED}Ошибка ввода.{RESET} Число должно быть нечетным и больше 1.")
+        else:
+            return input_amount
+
+
 #получить % отсечки для ПА для любого источника
 def get_dynamic_cutoff(default_value):
     dynamic_cutoff = input_integer_number(f"Введите примерный % заданий от общего количества, которые пойдут на динамический анализ (по умолчанию - {default_value}%): ")
@@ -669,7 +679,7 @@ if __name__ == '__main__':
     elif inpit_installation_type == 4:
         #расчет серверов управления без динамики в отказоустойчивом кластере
         print('\n──────────────────────Расчет кол-ва серверов управления─────────────────────')
-        input_masters_amount = input_integer_number('Введите количество серверов управления в данной инсталляции (нечетное число): ')
+        input_masters_amount = input_odd_number('Введите количество серверов управления в данной инсталляции (нечетное число): ')
         for i in range(input_masters_amount):
             servers_list.append(calculate_master_without_dynamic(installation_parameters['iso_amount'], installation_parameters['overall_static']))
         #расчет дополнительных серверов с динамикой
