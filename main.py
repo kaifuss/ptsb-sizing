@@ -24,13 +24,17 @@ RESET = '\033[0m'  #сброс на дефолт
 def input_yes_no(question):
     #print(question)
     while True:
-        input_answer = input(f'{question} [Yes, Y, Да, Д| / [No, N, Нет, Н]: ').strip().lower()
-        if input_answer in ['yes', 'y', 'да', 'д']:
-            return True
-        elif input_answer in ['no', 'n', 'нет', 'н', '']:
-            return False
-        else:
-            print(f"{RED}Некорректный ввод.{RESET} Повторите попытку.\n")
+        try:
+            input_answer = input(f'{question} [Yes, Y, Да, Д| / [No, N, Нет, Н]: ').strip().lower()
+            if input_answer in ['yes', 'y', 'да', 'д']:
+                return True
+            elif input_answer in ['no', 'n', 'нет', 'н', '']:
+                return False
+            else:
+                print(f"{RED}Некорректный ввод.{RESET} Повторите попытку.\n")
+        except KeyboardInterrupt:
+            print('\n \nПринудительный выход из скрипта.\n')
+            exit()
 
 #ввод целого числа при выборе
 def input_choise_digit(question, max_option):
@@ -42,8 +46,11 @@ def input_choise_digit(question, max_option):
                 return input_digit
             else:
                 print(f"{RED}Некорректный ввод.{RESET} Введите число от 1 до {max_option}: ")
-        except:
+        except ValueError:
             print(f"{RED}Некорректный ввод.{RESET} Ожидалось целое число от 1 до {max_option}: ")
+        except KeyboardInterrupt:
+            print('\n \nПринудительный выход из скрипта.\n')
+            exit()
 
 #ввод проверка ввода любого целого числа
 def input_integer_number(question):
@@ -53,8 +60,12 @@ def input_integer_number(question):
             if input_number == '':
                 return None
             return int(input_number)
-        except:
+        except ValueError:
             print(f"{RED}Некорректный ввод.{RESET} Ожидалось целое число.")
+        except KeyboardInterrupt:
+            #print('\n')
+            print('\n \nПринудительный выход из скрипта.\n')
+            exit()
 
 #получить % отсечки для ПА для любого источника
 def get_dynamic_cutoff(default_value):
