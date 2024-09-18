@@ -19,6 +19,12 @@ GREEN = '\033[32m'
 YELLOW = '\033[33m'
 RESET = '\033[0m'  #сброс на дефолт
 
+#Константы параметров вывода
+TXT_OUTPUT_ENCODING = 'utf-8'
+CSV_OUTPUT_ENCODING = 'windows-1251'
+CSV_OUTPUT_DELIMITER = ';'
+CSV_OUTPUT_NEWLINE = ''
+
 #FUNCS
 #согласие на ввод
 def input_yes_no(question):
@@ -383,7 +389,7 @@ def generate_table(table_format, servers_list, fields, first_column_header, firs
 
 #вывод данных по стенду в файл txt
 def output_to_txt(tech_req_table, partition_table, filename):
-    with open(filename, 'w', encoding='utf-8') as output_file:
+    with open(filename, 'w', encoding=TXT_OUTPUT_ENCODING) as output_file:
         output_file.write('Таблица с техническими требованиями к серверам:\n')
         output_file.write(tech_req_table)
         output_file.write('\n\nТаблица с разметкой дискового пространства серверов:\n')
@@ -392,8 +398,8 @@ def output_to_txt(tech_req_table, partition_table, filename):
 
 #вывод данных по стенду в файл csv
 def output_to_csv(tech_req_table, partition_table, filename):
-    with open(filename, mode='w', newline='', encoding='windows-1251') as output_file:
-        writer = csv.writer(output_file, delimiter=';')
+    with open(filename, mode='w', newline=CSV_OUTPUT_NEWLINE, encoding=CSV_OUTPUT_ENCODING) as output_file:
+        writer = csv.writer(output_file, delimiter=CSV_OUTPUT_DELIMITER)
         writer.writerow(['Таблица с техническими требованиями к серверам:'])
         writer.writerows(tech_req_table)
         writer.writerow([''])
