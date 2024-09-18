@@ -249,7 +249,7 @@ def get_storage_load(storage_load_parameters):
 def calculate_master_with_dynamic(vms_amount, iso_amount):
     server_parameters = {
         'server_role': f"Сервер управления с функцией ПА\nКоличество ВМ: {vms_amount}",
-        'root_space': 145,
+        'root_space': 140,
         'opt_space': 0,
         'minio_space': 0,
         'home_space': 100,
@@ -261,10 +261,12 @@ def calculate_master_with_dynamic(vms_amount, iso_amount):
     server_parameters['opt_space'] = math.ceil((15 * iso_amount + 45) * 1.074)
     server_parameters['minio_space'] = math.ceil((8 * iso_amount + 50) * 1.074)
     server_parameters['ssd_size'] = (
+        server_parameters['ssd_size'] +
         server_parameters['root_space'] +
         server_parameters['opt_space']
     )
     server_parameters['hdd_size'] = (
+        server_parameters['hdd_size'] +
         server_parameters['minio_space'] +
         server_parameters['home_space']
     )
@@ -277,8 +279,8 @@ def calculate_master_with_dynamic(vms_amount, iso_amount):
 def calculate_master_without_dynamic(iso_amount, static_tasks):
     server_parameters = {
         'server_role': 'Сервер управления без функции ПА',
-        'root_space': 135,
-        'opt_space': 90,
+        'root_space': 130,
+        'opt_space': 85,
         'minio_space': 0,
         'home_space': 100,
         'theads_amount': 0,
@@ -313,8 +315,8 @@ def calculate_master_without_dynamic(iso_amount, static_tasks):
 def calculate_additional_server_with_vms(vms_amount):
     server_parameters = {
         'server_role': f"Дополнительный сервер с функцией ПА\nКоличество ВМ: {vms_amount}",
-        'root_space': 145,
-        'opt_space': 90,
+        'root_space': 140,
+        'opt_space': 0,
         'minio_space': 0,
         'home_space': 100,
         'theads_amount': 0,
