@@ -265,18 +265,29 @@ def get_storage_load(storage_load_parameters):
 def calculate_master_with_dynamic(vms_amount, iso_amount):
     server_parameters = {
         'server_role': f"Сервер управления с функцией ПА\nКоличество ВМ: {vms_amount}",
-        'root_space': 140,
-        'opt_space': 0,
+        'root_space': 118,
+        'opt_space': 43,
         'minio_space': 0,
         'home_space': 100,
+        'part_multiplier': 1.08,
         'theads_amount': 0,
         'ram_amount': 0,
         'ssd_size': 0,
         'hdd_size': 0,
     }
-    server_parameters['opt_space'] = math.ceil((15 * iso_amount + 45) * 1.074)
+    # V_root = N_ВМ + 118
+    server_parameters['root_space'] = math.ceil((vms_amount + server_parameters['root_space']) * 1.074)
+    
+    # V_opt = N_ВМ + 15 * N_ISO + 43
+    server_parameters['opt_space'] = math.ceil((vms_amount + 15 * iso_amount + server_parameters['opt_space']) * 1.074)
+
+    # V_minio = 8 * N_ISO + 50
     server_parameters['minio_space'] = math.ceil((8 * iso_amount + 50) * 1.074)
     
+    # рекомендация по домножению на 8%
+    for key in ['root_space', 'opt_space', 'minio_space', 'home_space']:
+        server_parameters[key] = math.ceil(server_parameters[key] * server_parameters['part_multiplier'])
+
     server_parameters['ssd_size'] = (
         server_parameters['ssd_size'] +
         server_parameters['root_space'] +
@@ -289,25 +300,36 @@ def calculate_master_with_dynamic(vms_amount, iso_amount):
         server_parameters['home_space']
     )
 
+    # Threads = 3 * N_ВМ + 9
     server_parameters['theads_amount'] = 3 * vms_amount + 9
+
+    # RAM = 4 * N_ВМ + 19
     server_parameters['ram_amount'] = math.ceil((4 * vms_amount + 19) * 1.074)
+    
     return server_parameters
 
 #расчет ТХ сервера управления без функции ПА  
 def calculate_master_without_dynamic(iso_amount, static_tasks):
     server_parameters = {
         'server_role': 'Сервер управления без функции ПА',
-        'root_space': 130,
-        'opt_space': 85,
+        'root_space': 140,
+        'opt_space': 87,
         'minio_space': 0,
         'home_space': 100,
+        'part_multiplier': 1.08,
         'theads_amount': 0,
         'ram_amount': 0,
         'ssd_size': 0,
         'hdd_size': 0,
     }
+
+    # V_minio = 8 * N_ISO + 50
     server_parameters['minio_space'] = math.ceil((8 * iso_amount + 50) * 1.074)
-    
+
+    # рекомендация по домножению на 8%
+    for key in ['root_space', 'opt_space', 'minio_space', 'home_space']:
+        server_parameters[key] = math.ceil(server_parameters[key] * server_parameters['part_multiplier'])
+
     server_parameters['ssd_size'] = (
         server_parameters['root_space'] +
         server_parameters['opt_space']
@@ -334,20 +356,29 @@ def calculate_master_without_dynamic(iso_amount, static_tasks):
     return server_parameters
 
 #расчет ТХ дополнительного сервера с функцией ПА
-def calculate_additional_server_with_vms(vms_amount):
+def calculate_additional_server_with_vms(vms_amount, iso_amount):
     server_parameters = {
         'server_role': f"Дополнительный сервер с функцией ПА\nКоличество ВМ: {vms_amount}",
-        'root_space': 140,
+        'root_space': 118,
         'opt_space': 0,
         'minio_space': 0,
         'home_space': 100,
+        'part_multiplier': 1.08,
         'theads_amount': 0,
         'ram_amount': 0,
         'ssd_size': 0,
         'hdd_size': 0,
     }
-    server_parameters['opt_space'] = math.ceil(vms_amount * 15 * 1.074)
+    # V_root = N_ВМ + 118
+    server_parameters['root_space'] = math.ceil((vms_amount + server_parameters['root_space']) * 1.074)
     
+    # V_opt = N_ВМ + 15 * N_ISO - 2
+    server_parameters['opt_space'] = math.ceil((vms_amount + 15 * iso_amount - 2) * 1.074)
+    
+    # рекомендация по домножению на 8%
+    for key in ['root_space', 'opt_space', 'minio_space', 'home_space']:
+        server_parameters[key] = math.ceil(server_parameters[key] * server_parameters['part_multiplier'])
+
     server_parameters['ssd_size'] = (
         server_parameters['root_space'] +
         server_parameters['opt_space']
@@ -358,8 +389,12 @@ def calculate_additional_server_with_vms(vms_amount):
         server_parameters['home_space']
     )
     
+    # Threads = 3 * N_ВМ + 4
     server_parameters['theads_amount'] = 3 * vms_amount + 4
+
+    # RAM = 4 * N_ВМ + 5
     server_parameters['ram_amount'] = math.ceil((vms_amount * 4 + 5) * 1.074)
+    
     return server_parameters
 
 #расчет всех доп серверов с динамикой
