@@ -267,7 +267,7 @@ def calculate_master_with_dynamic(vms_amount, iso_amount):
         'server_role': f"Сервер управления с функцией ПА\nКоличество ВМ: {vms_amount}",
         'root_space': 118,
         'opt_space': 43,
-        'minio_space': 0,
+        'minio_space': 50,
         'home_space': 100,
         'part_multiplier': 1.08,
         'theads_amount': 0,
@@ -282,7 +282,7 @@ def calculate_master_with_dynamic(vms_amount, iso_amount):
     server_parameters['opt_space'] = math.ceil((vms_amount + 15 * iso_amount + server_parameters['opt_space']) * 1.074)
 
     # V_minio = 8 * N_ISO + 50
-    server_parameters['minio_space'] = math.ceil((8 * iso_amount + 50) * 1.074)
+    server_parameters['minio_space'] = math.ceil((8 * iso_amount + server_parameters['minio_space']) * 1.074)
     
     # рекомендация по домножению на 8%
     for key in ['root_space', 'opt_space', 'minio_space', 'home_space']:
@@ -314,7 +314,7 @@ def calculate_master_without_dynamic(iso_amount, static_tasks):
         'server_role': 'Сервер управления без функции ПА',
         'root_space': 140,
         'opt_space': 87,
-        'minio_space': 0,
+        'minio_space': 50,
         'home_space': 100,
         'part_multiplier': 1.08,
         'theads_amount': 0,
@@ -324,7 +324,7 @@ def calculate_master_without_dynamic(iso_amount, static_tasks):
     }
 
     # V_minio = 8 * N_ISO + 50
-    server_parameters['minio_space'] = math.ceil((8 * iso_amount + 50) * 1.074)
+    server_parameters['minio_space'] = math.ceil((8 * iso_amount + server_parameters['minio_space']) * 1.074)
 
     # рекомендация по домножению на 8%
     for key in ['root_space', 'opt_space', 'minio_space', 'home_space']:
@@ -398,7 +398,7 @@ def calculate_additional_server_with_vms(vms_amount, iso_amount):
     return server_parameters
 
 #расчет всех доп серверов с динамикой
-def get_all_additional_servers(vms_all, vms_per_server):
+def get_all_additional_servers(vms_all, vms_per_server, iso_amount):
     dynamic_servers_list = []
     dynamic_servers_amount = math.ceil(vms_all / vms_per_server)
     print('\n───────────────────Расчет ТХ для доп. серверов динамики─────────────────────')
@@ -411,15 +411,16 @@ def get_all_additional_servers(vms_all, vms_per_server):
         vms_left = vms_all
         while (vms_left > 0):
             if (vms_left > vms_per_server):
-                dynamic_servers_list.append(calculate_additional_server_with_vms(vms_per_server))
+                dynamic_servers_list.append(calculate_additional_server_with_vms(vms_per_server, iso_amount))
             else:
-                dynamic_servers_list.append(calculate_additional_server_with_vms(vms_left))
+                dynamic_servers_list.append(calculate_additional_server_with_vms(vms_left, iso_amount))
             vms_left -= vms_per_server
     elif input_calculation_type == 2:
         print('\n────────────────Ручная конфигурация доп. серверов динамики──────────────────')
         dynamic_servers_amount = input_integer_number('Введите количество дополнительных серверов: ')
         for i in range(dynamic_servers_amount):
-            dynamic_servers_list.append(calculate_additional_server_with_vms(input_integer_number(f"Введите количество ВМ для {i+1}-го доп. сервера динамики: ")))
+            vms_amount = input_integer_number(f"Введите количество ВМ для {i+1}-го доп. сервера динамики: ")
+            dynamic_servers_list.append(calculate_additional_server_with_vms(vms_amount, iso_amount))
     return dynamic_servers_list
 
 #замена всех 0 на 'Не требуется'
@@ -483,7 +484,8 @@ if __name__ == '__main__':
     #основные параметры конфигурации
     installation_parameters = {
         'vms_all': 15,
-        'vms_per_server': 15,
+        'vms_for_master': 15,
+        'vms_for_additional': 30,
         'iso_amount': 7,
         'time_to_scan': 150,
         'overall_static': 0,
@@ -627,6 +629,7 @@ if __name__ == '__main__':
             manual_api_load_parameters['files'] +
             storage_load_parameters['files']
         )
+
         #расчет общей динамической нагрузки
         installation_parameters['overall_dynamic'] = (
             smtp_load_parameters['dynamic_load'] +
@@ -636,6 +639,7 @@ if __name__ == '__main__':
             manual_api_load_parameters['dynamic_load'] +
             storage_load_parameters['dynamic_load']
         )
+
         #расчет общего необходимого количества виртуальных машин на всю инсталляцию
         installation_parameters['vms_all'] = (
             smtp_load_parameters['vms_needed'] +
@@ -652,7 +656,8 @@ if __name__ == '__main__':
             f"\nКоличество динамических заданий после всех отсечек: {installation_parameters['overall_dynamic']}"
             f"\nРекомендуемое количество виртуальных машин на всю инсталляцию: {installation_parameters['vms_all']}"
         )
-        if installation_parameters['vms_all'] > installation_parameters['vms_per_server']:
+
+        if installation_parameters['vms_all'] > installation_parameters['vms_for_master']:
             print(f"Использование инсталляции AiO: {RED}Не рекомендуется{RESET}")
         else:
             print(f"Использование инсталляции AiO: {GREEN}Возможно{RESET}")
@@ -677,7 +682,7 @@ if __name__ == '__main__':
             installation_parameters['vms_all'] = math.ceil(installation_parameters['overall_dynamic'] * installation_parameters['time_to_scan'] / 3600)
             print('\nРасчитанное количество ВМ на стенде: ', installation_parameters['vms_all'])
         
-        if installation_parameters['vms_all'] > installation_parameters['vms_per_server']:
+        if installation_parameters['vms_all'] > installation_parameters['vms_for_master']:
             print(f"Использование инсталляции AiO: {RED}Не рекомендуется{RESET}")
         else:
             print(f"Использование инсталляции AiO: {GREEN}Возможно{RESET}")
@@ -713,43 +718,47 @@ if __name__ == '__main__':
     #расчет конфигурации AiO инсталляции
     if inpit_installation_type == 1:
         #проверка, что количество вм выходит за ограничения вендора
-        if (installation_parameters['vms_all'] <= installation_parameters['vms_per_server']):
+        if (installation_parameters['vms_all'] <= installation_parameters['vms_for_master']):
             input_vms_all = input_integer_number(
                 "\nВведите количество ВМ для сервера AiO"
                 f"(по умолчанию будет использоваться рекомендованное значение - {installation_parameters['vms_all']}): "
             )
         else:
             input_vms_all = input_integer_number(
-                f"\n{RED}Внимание!{RESET} Для AiO инсталляции поддерживается не более {installation_parameters['vms_per_server']} ВМ на хост. "
+                f"\n{RED}Внимание!{RESET} Для AiO инсталляции поддерживается не более {installation_parameters['vms_for_master']} ВМ на сервер. "
                 f"Рассчитанное рекомендованное ранее значние: {RED}{installation_parameters['vms_all']}{RESET}.\n"
                 "Введите количество ВМ, на которое рассчитывается AiO инсталляция"
-                f" (по умолчанию будет использоваться максимальное возможное значение - {installation_parameters['vms_per_server']}): "
+                f" (по умолчанию будет использоваться максимальное возможное значение - {installation_parameters['vms_for_master']}): "
             )
             print(f"\nБудет: {input_vms_all}\n")
         
-        installation_parameters['vms_all'] = input_vms_all or installation_parameters['vms_per_server']
+        installation_parameters['vms_all'] = input_vms_all or installation_parameters['vms_for_master']
         
         servers_list.append(calculate_master_with_dynamic(installation_parameters['vms_all'], installation_parameters['iso_amount']))
     
     #расчет конфигурации высоконагруженной инсталляции, узел управления с ПА    
     elif inpit_installation_type == 2:
-        #нужно серверов в принципе
-        all_servers_needed = math.ceil(installation_parameters['vms_all'] / installation_parameters['vms_per_server'])
-        #тогда всего ВМ на динамиках будет:
-        all_vms_on_dynamics = (all_servers_needed - 1) * installation_parameters['vms_per_server']
-        #тогда на сервере управления будет ВМ:
-        vms_on_master = installation_parameters['vms_all'] - all_vms_on_dynamics
+        
+        # если пользователь выбрал этот вариант, но этот вариант нелогичен
+        if installation_parameters['vms_all'] <= installation_parameters['vms_for_additional']:
+            vms_on_master = installation_parameters['vms_for_master']
+        else:
+            #нужно серверов динамики
+            dynamic_servers_needed = math.ceil((installation_parameters['vms_all'] - installation_parameters['vms_for_master']) / installation_parameters['vms_for_additional'])
+        
+            #тогда на сервере управления будет количество ВМ:
+            vms_on_master = installation_parameters['vms_all'] - dynamic_servers_needed * installation_parameters['vms_for_additional'] 
         
         #расчет ТХ сервера управления с функцией ПА
         print('\n─────────────────────Расчет ТХ для сервера управления───────────────────────')
         input_masters_installation_type = input_choise_digit(
-            f"1. Расчет ТХ под сервер управления с {installation_parameters['vms_per_server']} ВМ (максимально возможным числом);\n"
+            f"1. Расчет ТХ под сервер управления с {installation_parameters['vms_for_master']} ВМ (максимально возможным числом);\n"
             f"2. Расчет ТХ под сервер управления с {vms_on_master} ВМ (тогда на каждом доп. сервере будет равное максимально количество ВМ);\n"
             f"3. Вручную ввести количество ВМ для сервера управления с функцией ПА", 3
         )
         
         if input_masters_installation_type == 1:
-            vms_on_master = installation_parameters['vms_per_server']
+            vms_on_master = installation_parameters['vms_for_master']
         elif input_masters_installation_type == 3:
             vms_on_master = input_integer_number('Введите количество ВМ для сервера управления с функцией ПА: ')
         
@@ -760,7 +769,7 @@ if __name__ == '__main__':
         all_vms_on_dynamics = installation_parameters['vms_all'] - vms_on_master
 
         #расчет ТХ доп. серверов с функцией ПА
-        servers_list.extend(get_all_additional_servers(all_vms_on_dynamics, installation_parameters['vms_per_server']))
+        servers_list.extend(get_all_additional_servers(all_vms_on_dynamics, installation_parameters['vms_for_additional'], installation_parameters['iso_amount']))
     
     #расчет конфигурации высоконагруженной инсталляции, узел управления без ПА
     elif inpit_installation_type == 3:
@@ -768,7 +777,7 @@ if __name__ == '__main__':
         servers_list.append(calculate_master_without_dynamic(installation_parameters['iso_amount'], installation_parameters['overall_static']))
         
         #расчет ТХ доп. серверов с функцией ПА
-        servers_list.extend(get_all_additional_servers(installation_parameters['vms_all'], installation_parameters['vms_per_server']))
+        servers_list.extend(get_all_additional_servers(installation_parameters['vms_all'], installation_parameters['vms_for_additional'], installation_parameters['iso_amount']))
 
     #расчет конфигурации отказоуйстойчивого кластера
     elif inpit_installation_type == 4:
@@ -779,7 +788,7 @@ if __name__ == '__main__':
             servers_list.append(calculate_master_without_dynamic(installation_parameters['iso_amount'], installation_parameters['overall_static']))
         
         #расчет дополнительных серверов с динамикой
-        servers_list.extend(get_all_additional_servers(installation_parameters['vms_all'], installation_parameters['vms_per_server']))
+        servers_list.extend(get_all_additional_servers(installation_parameters['vms_all'], installation_parameters['vms_for_additional'], installation_parameters['iso_amount']))
 
     #предварительная обработка серверов перед выводом
     servers_list = [replace_zero_with_message(server) for server in servers_list]
