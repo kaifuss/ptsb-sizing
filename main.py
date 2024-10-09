@@ -723,6 +723,9 @@ if __name__ == '__main__':
                 "\nВведите количество ВМ для сервера AiO"
                 f"(по умолчанию будет использоваться рекомендованное значение - {installation_parameters['vms_all']}): "
             )
+
+            installation_parameters['vms_all'] = input_vms_all or installation_parameters['vms_all']
+
         else:
             input_vms_all = input_integer_number(
                 f"\n{RED}Внимание!{RESET} Для AiO инсталляции поддерживается не более {installation_parameters['vms_for_master']} ВМ на сервер. "
@@ -730,9 +733,8 @@ if __name__ == '__main__':
                 "Введите количество ВМ, на которое рассчитывается AiO инсталляция"
                 f" (по умолчанию будет использоваться максимальное возможное значение - {installation_parameters['vms_for_master']}): "
             )
-            print(f"\nБудет: {input_vms_all}\n")
-        
-        installation_parameters['vms_all'] = input_vms_all or installation_parameters['vms_for_master']
+
+            installation_parameters['vms_all'] = input_vms_all or installation_parameters['vms_for_master']
         
         servers_list.append(calculate_master_with_dynamic(installation_parameters['vms_all'], installation_parameters['iso_amount']))
     
