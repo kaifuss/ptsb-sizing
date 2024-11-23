@@ -353,18 +353,21 @@ def calculate_master_without_dynamic(iso_amount, static_tasks):
         server_parameters['home_space']
     )    
     
-    if static_tasks <= 100:
+    if static_tasks < 100:
         server_parameters['theads_amount'] = 4
         server_parameters['ram_amount'] = 16
-    elif (static_tasks > 100 ) and (static_tasks <= 1000):
+    elif (static_tasks >= 100 ) and (static_tasks < 1_000):
         server_parameters['theads_amount'] = 6
         server_parameters['ram_amount'] = 32
-    elif (static_tasks > 1000) and (static_tasks <= 5000):
+    elif (static_tasks >= 1_000) and (static_tasks < 5_000):
         server_parameters['theads_amount'] = 10
         server_parameters['ram_amount'] = 32
-    elif (static_tasks > 5000):
+    elif (static_tasks >= 5_000) and (static_tasks < 10_000):
         server_parameters['theads_amount'] = 15
         server_parameters['ram_amount'] = 32
+    elif (static_tasks >= 10_000):
+        server_parameters['theads_amount'] = 48
+        server_parameters['ram_amount'] = 64
     
     return server_parameters
 
