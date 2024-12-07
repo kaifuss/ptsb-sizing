@@ -1,0 +1,38 @@
+{
+    "master_with_dynamic_parameters": {
+        "server_role": "Сервер управления с функцией ПА",
+        "root_space": 118,
+        "opt_space": 43,
+        "minio_space": 50,
+        "home_space": 100,
+        "part_multiplier": 1.08,
+        "theads_amount": 0,
+        "ram_amount": 0,
+        "ssd_size": 0,
+        "hdd_size": 0
+    },
+    "master_without_dynamic_parameters": {
+        "server_role": "Сервер управления без функции ПА",
+        "root_space": 140,
+        "opt_space": 87,
+        "minio_space": 50,
+        "home_space": 100,
+        "part_multiplier": 1.08,
+        "theads_amount": 0,
+        "ram_amount": 0,
+        "ssd_size": 0,
+        "hdd_size": 0
+    },
+    "additional_dynamic_parameters": {
+        "server_role": "Дополнительный сервер с функцией ПА",
+        "root_space": 118,
+        "opt_space": 0,
+        "minio_space": 0,
+        "home_space": 100,
+        "part_multiplier": 1.08,
+        "theads_amount": 0,
+        "ram_amount": 0,
+        "ssd_size": 0,
+        "hdd_size": 0
+    }
+}

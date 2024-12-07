@@ -82,7 +82,6 @@ def input_integer_number(question):
         except ValueError:
             print(f"{RED}Некорректный ввод.{RESET} Ожидалось целое число.\n")
         except KeyboardInterrupt:
-            #print('\n')
             print('\n \nПринудительный выход из скрипта.\n')
             exit()
 
@@ -635,7 +634,6 @@ if __name__ == '__main__':
             storage_load_parameters['files'] = input_integer_number('Введите количество файлов в час, которые будут проверяться статикой: ')
             storage_load_parameters['dynamic_load'] = input_integer_number('Введите количество файлов, которые будут проверяться динамикой: ')
             storage_load_parameters = get_storage_load(storage_load_parameters)
-            pass
 
         #расчет общей статической нагрузки
         installation_parameters['overall_static'] = (

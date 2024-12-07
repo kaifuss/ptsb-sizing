@@ -1,0 +1,66 @@
+{
+    "smtp_load_parameters": {
+        "mails": 0,
+        "users": 0,
+        "users_multiplier": 3,
+        "mails_with_attachments": 10,
+        "attachments_per_mail": 1,
+        "dynamic_cutoff": 10,
+        "prefilter_cutoff": 40,
+        "cache_cutoff": 85,
+        "time_to_scan": 150,
+        "dynamic_load": 0,
+        "vms_needed": 0
+    },
+
+    "icap_load_parameters": {
+        "speed": 0,
+        "files": 0,
+        "dynamic_cutoff": 5,
+        "prefilter_cutoff": 40,
+        "cache_cutoff": 85,
+        "time_to_scan": 150,
+        "dynamic_load": 0,
+        "vms_needed": 0
+    },
+
+    "edr_load_parameters": {
+        "agents": 0,
+        "files": 0,
+        "agents_multiplier": 3,
+        "dynamic_cutoff": 1,
+        "prefilter_cutoff": 40,
+        "cache_cutoff": 85,
+        "time_to_scan": 150,
+        "dynamic_load": 0,
+        "vms_needed": 0
+    },
+
+    "automated_api_load_parameters": {
+        "files": 0,
+        "dynamic_cutoff": 50,
+        "prefilter_cutoff": 40,
+        "cache_cutoff": 95,
+        "time_to_scan": 150,
+        "dynamic_load": 0,
+        "vms_needed": 0
+    },
+
+    "manual_api_load_parameters": {
+        "files": 0,
+        "dynamic_cutoff": 50,
+        "cache_cutoff": 95,
+        "time_to_scan": 150,
+        "dynamic_load": 0,
+        "vms_needed": 0
+    },
+    
+    "storage_load_parameters": {
+        "files": 0,
+        "prefilter_cutoff": 40,
+        "cache_cutoff": 50,
+        "time_to_scan": 150,
+        "dynamic_load": 0,
+        "vms_needed": 0
+    }
+}
