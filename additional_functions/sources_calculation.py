@@ -2,7 +2,7 @@
 import math
 
 #самописные функции
-import input_output
+from additional_functions import input_output
 
 
 #получить % отсечки для ПА для любого источника
@@ -66,7 +66,7 @@ def get_time_to_scan(default_value: int):
         int: Введенное пользователем число, количество секунд.
     """
 
-    input_scan_time = input_output.input_integer_number(f"Введите время в секундах, как долго будут сканироваться задания с этого источника (по умолчанию - {default_value}): ", default_value)
+    input_scan_time = input_output.input_integer_with_default(f"Введите время в секундах, как долго будут сканироваться задания с этого источника (по умолчанию - {default_value}): ", default_value)
     return input_scan_time
 
 #расчет нагрузки с почтового трафика
@@ -80,10 +80,13 @@ def get_smtp_load(smtp_source_parameters: dict) -> dict:
     Возвращает:
         dict: обновленный словарь с показателями нагрузки smtp источника.
     """
-
+    
     #Если количество писем в час - неизвестно, то расчет идет от количества пользователей.
-    if smtp_source_parameters['mails'] == 0:
+    if not input_output.input_yes_no('Известно ли количество писем в час с данного источника?'):
         
+        # запрашиаем количество пользователей
+        smtp_source_parameters['users'] = input_output.input_integer_number('Введите количество пользователей почты: ')
+
         # количество писем в час - неизвестно
         smtp_source_parameters['users_multiplier'] = input_output.input_integer_with_default(
             f"Ввведите количество писем на 1 пользователя (по умолчанию - {smtp_source_parameters['users_multiplier']}): ",
@@ -107,6 +110,10 @@ def get_smtp_load(smtp_source_parameters: dict) -> dict:
     
     # если всё же количество писем в час известно
     else:
+
+        # запрашиваем количество писем в час
+        smtp_source_parameters['mails'] = input_output.input_integer_number('Введите количество писем в час: ')
+
         if input_output.input_yes_no('Известно ли количетсво писем в час, содержащих вложения?'):
             # количество писем с вложениями - известно
             smtp_source_parameters['mails_with_attachments'] = input_output.input_integer_number(
@@ -132,6 +139,9 @@ def get_smtp_load(smtp_source_parameters: dict) -> dict:
         smtp_source_parameters['attachments_per_mail']
     )
     
+    # для общего вида добавляем ключ 'files', чтобы потом обрабатывать эти показатели едино в MAIN.py
+    smtp_source_parameters['files'] = smtp_source_parameters['mails']
+
     # получаем/обновляем все возможные отсечки
     smtp_source_parameters['dynamic_cutoff'] = get_dynamic_cutoff(smtp_source_parameters['dynamic_cutoff'])
     smtp_source_parameters['prefilter_cutoff'] = get_prefilter_cutoff(smtp_source_parameters['prefilter_cutoff'])
@@ -166,7 +176,10 @@ def get_icap_load(icap_source_parameters: dict) -> dict:
     """
     
     # если количество файлов неизвестно, то вычисляем среднее количество из пропорции:
-    if icap_source_parameters['files'] == 0:
+    if input_output.input_yes_no('Известно ли количетсво файлов в трафике за час?'):
+        icap_source_parameters['files'] = input_output.input_integer_number('Введите количество файлов в час: ')
+    else:
+        icap_source_parameters['speed'] = input_output.input_integer_number('Введите скорость трафика в Мбит/с: ')
         icap_source_parameters['files'] = math.ceil( (7000 * icap_source_parameters['speed']) / 1024 )
 
     # получаем/обновляем все возможные отсечки
@@ -200,9 +213,12 @@ def get_edr_load(edr_source_parameters: dict) -> dict:
     Возвращает:
         dict: обновленный словарь с показателями нагрузки pt edr источника.
     """    
-    
+
     # если количество файлов неизвестно, то вычисляем среднее количество через multiplier
-    if edr_source_parameters['files'] == 0:
+    if input_output.input_yes_no('Известно ли общее количество файлов со всех агентов в час?'):
+        edr_source_parameters['files'] = input_output.input_integer_number('Введите количество файлов в час: ')
+    else:
+        edr_source_parameters['agents'] = input_output.input_integer_number('Введите количество агентов mp 10 edr, с которых будут проверяться файлы: ')
         edr_source_parameters['agents_multiplier'] = input_output.input_integer_with_default(
             f"Введите примерное количество файлов с 1 агента edr (по умолчанию - {edr_source_parameters['agents_multiplier']}): ",
             edr_source_parameters['agents_multiplier']
@@ -241,6 +257,9 @@ def get_automated_api_load(automated_api_source_parameters: dict) -> dict:
         dict: обновленный словарь с показателями нагрузки настроенного api источника.
     """
 
+    # получаем количество файлов в час
+    automated_api_source_parameters['files'] = input_output.input_integer_number('Введите примерное количество файлов в час: ')
+
     # получаем/обновляем все возможные отсечки
     automated_api_source_parameters['dynamic_cutoff'] = get_dynamic_cutoff(automated_api_source_parameters['dynamic_cutoff'])
     automated_api_source_parameters['prefilter_cutoff'] = get_prefilter_cutoff(automated_api_source_parameters['prefilter_cutoff'])
@@ -273,6 +292,9 @@ def get_manual_api_load(manual_api_source_parameters: dict) -> dict:
         dict: обновленный словарь с показателями нагрузки ручного api источника.
     """
 
+    # получаем количество файлов в час
+    manual_api_source_parameters['files'] = input_output.input_integer_number('Введите примерное количество файлов в час: ')
+
     # получаем/обновляем все возможные отсечки
     manual_api_source_parameters['dynamic_cutoff'] = get_dynamic_cutoff(manual_api_source_parameters['dynamic_cutoff'])
     manual_api_source_parameters['cache_cutoff'] = get_cache_cutoff(manual_api_source_parameters['cache_cutoff'])
@@ -302,6 +324,10 @@ def get_storage_load(storage_source_parameters: dict) -> dict:
     Возвращает:
         dict: обновленный словарь с показателями нагрузки источника файловой шары.
     """
+
+    # получаем грубые показатели (а иначе никак :/ ) 
+    storage_source_parameters['files'] = input_output.input_integer_number('Введите примерное количество файлов в час, которые будут проверяться статикой: ')
+    storage_source_parameters['dynamic_load'] = input_output.input_integer_number('Введите примерное количество файлов в час, которые будут проверяться динамикой: ')
 
     # получаем/обновляем все возможные отсечки
     storage_source_parameters['prefilter_cutoff'] = get_prefilter_cutoff(storage_source_parameters['prefilter_cutoff'])
