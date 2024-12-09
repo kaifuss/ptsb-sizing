@@ -17,26 +17,45 @@ def filter_source_dict_fields(source: dict, fields_for_filter: list) -> dict:
 
 
 #генерация таблиц в TXT и CSV форматах на основании списка словарей
-def generate_table(table_format, servers_list, fields, first_column_header, first_column_fields):
-    transposed_data = {}
-    transposed_data[first_column_header] = first_column_fields
+def generate_table(
+        table_format: str,
+        first_column_header: str,
+        first_column_fields: list[str],
+        list_of_data_dicts: list[dict],
+        columns_name_key: str,
+        columns_values_key: list[str]) -> str:
+    """
+    Функция создания таблицы из списка словарей.
+
+    Параметры:
+        table_format (str): Способ форматирования таблицы (fancy - для вывода в консоль или csv для записи в csv файл).
+        first_column_header (str): Заголовок первого столбца в создаваемой таблице.
+        first_column_fields (list[str]): Названия строк в таблице (значения первого столбца таблицы).
+        list_of_data_dicts (list[dict]): Список словарей с данными, которыми будет заполнена таблица.
+        columns_name_key (str): Ключ в словарях, значение которого будет использоваться для создания заголовков таблицы.
+        columns_values_key (list[str]): Список ключей в словарях, значения которых будут использоваться для заполнения таблицы.
+
+    Возвращает:
+        str: Строка с таблицей в нужном формате.
+    """
+
+    #создание пустого словаря, в котором key - это название столбцов, а value - список значений (построчно)
+    table_columns = {}
+    table_columns[first_column_header] = first_column_fields
     
-    #cоздание уникальных идентификаторов для серверов
-    server_ids = [f"Сервер {i+1}\n{server.get('server_role')}" for i, server in enumerate(servers_list)]
-    
-    #проход по всем серверам и добавление их данных в словарь с уникальными ключами
-    for server_id, server in zip(server_ids, servers_list):
-        transposed_data[server_id] = [server.get(parameter) for parameter in fields]
-    
+    #добавление каждого отдельно взятого словаря в текущий словарь для транспонирования
+    for source_data_dict in list_of_data_dicts:
+        table_columns[source_data_dict[columns_name_key]] = [source_data_dict[value] for value in columns_values_key] 
+
     #транспонирование данных
-    transposed_table = list(zip(*transposed_data.values()))
+    transposed_table = list(zip(*table_columns.values()))
     
     #задание формата таблицы в csv или fancy
     if table_format == 'fancy':
-        fancy_table = tabulate(transposed_table, headers=transposed_data.keys(), tablefmt="fancy_grid")
+        fancy_table = tabulate(transposed_table, headers=table_columns.keys(), tablefmt="fancy_grid")
         return fancy_table
     elif table_format == 'csv':
         #первая строка, заголовки
-        csv_table = [list(transposed_data.keys())]
+        csv_table = [list(table_columns.keys())]
         csv_table.extend(transposed_table)
         return csv_table

@@ -7,6 +7,7 @@
         "overall_static": 0,
         "overall_dynamic": 0,
         "overall_vms": 0,
+        "generated_storage_size_per_hour": 0,
         "overall_storage_size": 0
     }
 }

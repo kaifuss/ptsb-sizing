@@ -4,6 +4,26 @@ import math
 #самописные функции
 from additional_functions import input_output
 
+#TODO обратиться к файлу, который давал костя, чтобы из него взять показатель для каждого типа источника - размер файла
+# посчитать генерируемый объем файлового хранилища с каждого источника
+def get_generated_storage_size(tasks_per_hour: int, one_task_size: float) -> float:
+    """
+    Возвращает объем генерируемого дискового пространства в час одним источником.
+
+    Параметры:
+        tasks_per_hour (int): Количество статических заданий в час с этого источника.
+        one_task_size (float): Размер одного задания в МБайтах.
+    
+    Возвращает:
+        float: Объем генерируемого дискового пространства в час этим источником.
+    """
+
+    tasks_per_hour = input_output.input_integer_with_default(
+        f"Введите количество статических заданий в час с данного источника (по умолчаению - {tasks_per_hour}): ", tasks_per_hour)
+    one_task_size = input_output.input_float_number_with_default(
+        f"Введите размер одного задания в МБайтах (по умолчанию - {one_task_size}): ", one_task_size)
+    
+    return tasks_per_hour * one_task_size
 
 #получить % отсечки для ПА для любого источника
 def get_dynamic_cutoff(default_value: int) -> float:
@@ -54,6 +74,7 @@ def get_cache_cutoff(default_value: int) -> float:
     cache_cutoff = float(cache_cutoff) / 100
     return cache_cutoff
 
+
 #получить время сканирования для любого источника
 def get_time_to_scan(default_value: int):
     """
@@ -68,6 +89,7 @@ def get_time_to_scan(default_value: int):
 
     input_scan_time = input_output.input_integer_with_default(f"Введите время в секундах, как долго будут сканироваться задания с этого источника (по умолчанию - {default_value}): ", default_value)
     return input_scan_time
+
 
 #расчет нагрузки с почтового трафика
 def get_smtp_load(smtp_source_parameters: dict) -> dict:
@@ -160,6 +182,10 @@ def get_smtp_load(smtp_source_parameters: dict) -> dict:
     # вычисляем необходимое количество ВМ для этого источника
     smtp_source_parameters['vms_needed'] = math.ceil(smtp_source_parameters['dynamic_load'] * smtp_source_parameters['time_to_scan'] / 3600)
     
+    # узнаем генерируемый объем дискового пространства экземляром источника в час
+    if input_output.input_yes_no('Необходимо ли рассчитать объем генерируемого дискового пространства с этого источника?'):
+        smtp_source_parameters['generated_storage_size'] = get_generated_storage_size(smtp_source_parameters['files'], smtp_source_parameters['one_task_size'])
+
     return smtp_source_parameters
 
 
@@ -199,6 +225,10 @@ def get_icap_load(icap_source_parameters: dict) -> dict:
     # вычисляем необходимое количество ВМ для этого источника
     icap_source_parameters['vms_needed'] = math.ceil(icap_source_parameters['dynamic_load'] * icap_source_parameters['time_to_scan'] / 3600)    
     
+    # узнаем генерируемый объем дискового пространства экземляром источника в час
+    if input_output.input_yes_no('Необходимо ли рассчитать объем генерируемого дискового пространства с этого источника?'):
+        icap_source_parameters['generated_storage_size'] = get_generated_storage_size(icap_source_parameters['files'], icap_source_parameters['one_task_size'])
+
     return icap_source_parameters
 
 
@@ -242,6 +272,10 @@ def get_edr_load(edr_source_parameters: dict) -> dict:
     # вычисляем необходимое количество ВМ для этого источника
     edr_source_parameters['vms_needed'] = math.ceil(edr_source_parameters['dynamic_load'] * edr_source_parameters['time_to_scan'] / 3600)  
     
+    # узнаем генерируемый объем дискового пространства экземляром источника в час
+    if input_output.input_yes_no('Необходимо ли рассчитать объем генерируемого дискового пространства с этого источника?'):
+        edr_source_parameters['generated_storage_size'] = get_generated_storage_size(edr_source_parameters['files'], edr_source_parameters['one_task_size'])
+    
     return edr_source_parameters
 
 
@@ -277,6 +311,10 @@ def get_automated_api_load(automated_api_source_parameters: dict) -> dict:
     # вычисляем необходимое количество ВМ для этого источника
     automated_api_source_parameters['vms_needed'] = math.ceil(automated_api_source_parameters['dynamic_load'] * automated_api_source_parameters['time_to_scan'] / 3600) 
 
+        # узнаем генерируемый объем дискового пространства экземляром источника в час
+    if input_output.input_yes_no('Необходимо ли рассчитать объем генерируемого дискового пространства с этого источника?'):
+        automated_api_source_parameters['generated_storage_size'] = get_generated_storage_size(automated_api_source_parameters['files'], automated_api_source_parameters['one_task_size'])
+
     return automated_api_source_parameters
 
 
@@ -310,6 +348,10 @@ def get_manual_api_load(manual_api_source_parameters: dict) -> dict:
     # вычисляем необходимое количество ВМ для этого источника
     manual_api_source_parameters['vms_needed'] = math.ceil(manual_api_source_parameters['dynamic_load'] * manual_api_source_parameters['time_to_scan'] / 3600) 
     
+    # узнаем генерируемый объем дискового пространства экземляром источника в час
+    if input_output.input_yes_no('Необходимо ли рассчитать объем генерируемого дискового пространства с этого источника?'):
+        manual_api_source_parameters['generated_storage_size'] = get_generated_storage_size(manual_api_source_parameters['files'], manual_api_source_parameters['one_task_size'])
+
     return manual_api_source_parameters
 
 
@@ -343,5 +385,9 @@ def get_storage_load(storage_source_parameters: dict) -> dict:
 
     # вычисляем необходимое количество ВМ для этого источника
     storage_source_parameters['vms_needed'] = math.ceil(storage_source_parameters['dynamic_load'] * storage_source_parameters['time_to_scan'] / 3600)
+
+    # узнаем генерируемый объем дискового пространства экземляром источника в час
+    if input_output.input_yes_no('Необходимо ли рассчитать объем генерируемого дискового пространства с этого источника?'):
+        storage_source_parameters['generated_storage_size'] = get_generated_storage_size(storage_source_parameters['files'], storage_source_parameters['one_task_size'])
 
     return storage_source_parameters

@@ -11,7 +11,9 @@
         "cache_cutoff": 85,
         "time_to_scan": 150,
         "dynamic_load": 0,
-        "vms_needed": 0
+        "vms_needed": 0,
+        "one_task_size": 0,
+        "generated_storage_size": 0
     },
 
     "icap_source_parameters": {
@@ -22,7 +24,9 @@
         "cache_cutoff": 85,
         "time_to_scan": 150,
         "dynamic_load": 0,
-        "vms_needed": 0
+        "vms_needed": 0,
+        "one_task_size": 0,
+        "generated_storage_size": 0
     },
 
     "edr_source_parameters": {
@@ -34,7 +38,9 @@
         "cache_cutoff": 85,
         "time_to_scan": 150,
         "dynamic_load": 0,
-        "vms_needed": 0
+        "vms_needed": 0,
+        "one_task_size": 0,
+        "generated_storage_size": 0
     },
 
     "automated_api_source_parameters": {
@@ -44,7 +50,9 @@
         "cache_cutoff": 95,
         "time_to_scan": 150,
         "dynamic_load": 0,
-        "vms_needed": 0
+        "vms_needed": 0,
+        "one_task_size": 0,
+        "generated_storage_size": 0
     },
 
     "manual_api_source_parameters": {
@@ -53,7 +61,9 @@
         "cache_cutoff": 95,
         "time_to_scan": 150,
         "dynamic_load": 0,
-        "vms_needed": 0
+        "vms_needed": 0,
+        "one_task_size": 0,
+        "generated_storage_size": 0
     },
     
     "storage_source_parameters": {
@@ -62,6 +72,8 @@
         "cache_cutoff": 50,
         "time_to_scan": 150,
         "dynamic_load": 0,
-        "vms_needed": 0
+        "vms_needed": 0,
+        "one_task_size": 0,
+        "generated_storage_size": 0
     }
 }
