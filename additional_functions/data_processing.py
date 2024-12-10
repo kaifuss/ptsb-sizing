@@ -1,5 +1,6 @@
 from tabulate import tabulate
 
+#TODO удалить если удалю из main
 # функция для фильтрации данных источников (словарей) по указанным полям
 def filter_source_dict_fields(source: dict, fields_for_filter: list) -> dict:
     """

@@ -15,7 +15,7 @@ def get_generated_storage_size(tasks_per_hour: int, one_task_size: float) -> flo
         one_task_size (float): Размер одного задания в МБайтах.
     
     Возвращает:
-        float: Объем генерируемого дискового пространства в час этим источником.
+        float: Объем генерируемого дискового пространства в час этим источником в ГБайтах.
     """
 
     tasks_per_hour = input_output.input_integer_with_default(
@@ -23,7 +23,9 @@ def get_generated_storage_size(tasks_per_hour: int, one_task_size: float) -> flo
     one_task_size = input_output.input_float_number_with_default(
         f"Введите размер одного задания в МБайтах (по умолчанию - {one_task_size}): ", one_task_size)
     
-    return tasks_per_hour * one_task_size
+    generated_size_gb = round((tasks_per_hour * one_task_size) / 1024, 2)
+
+    return generated_size_gb
 
 #получить % отсечки для ПА для любого источника
 def get_dynamic_cutoff(default_value: int) -> float:

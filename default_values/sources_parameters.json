@@ -3,16 +3,16 @@
         "mails": 0,
         "users": 0,
         "users_multiplier": 3,
-        "mails_with_attachments_percent": 10,
+        "mails_with_attachments_percent": 80,
         "mails_with_attachments": 0,
         "attachments_per_mail": 1,
-        "dynamic_cutoff": 10,
+        "dynamic_cutoff": 80,
         "prefilter_cutoff": 40,
         "cache_cutoff": 85,
         "time_to_scan": 150,
         "dynamic_load": 0,
         "vms_needed": 0,
-        "one_task_size": 0,
+        "one_task_size": 2,
         "generated_storage_size": 0
     },
 
@@ -25,7 +25,7 @@
         "time_to_scan": 150,
         "dynamic_load": 0,
         "vms_needed": 0,
-        "one_task_size": 0,
+        "one_task_size": 0.5,
         "generated_storage_size": 0
     },
 
@@ -39,7 +39,7 @@
         "time_to_scan": 150,
         "dynamic_load": 0,
         "vms_needed": 0,
-        "one_task_size": 0,
+        "one_task_size": 5,
         "generated_storage_size": 0
     },
 
@@ -51,7 +51,7 @@
         "time_to_scan": 150,
         "dynamic_load": 0,
         "vms_needed": 0,
-        "one_task_size": 0,
+        "one_task_size": 10,
         "generated_storage_size": 0
     },
 
@@ -62,7 +62,7 @@
         "time_to_scan": 150,
         "dynamic_load": 0,
         "vms_needed": 0,
-        "one_task_size": 0,
+        "one_task_size": 10,
         "generated_storage_size": 0
     },
     

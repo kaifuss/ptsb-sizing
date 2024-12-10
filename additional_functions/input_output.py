@@ -17,7 +17,7 @@ def print_header(text: str, header_level: int = 2, newline_indent: int = 1) -> N
     Параметры:
         text (str): Текст заголовка, который будет красиво оформлен.
         header_level (int): Уровень заголовка (1: '=', 2: '-', или 3: '~').
-        newline_indent (int): Количество отступов перед выводом текста.
+        newline_indent (int): Количество отступов выводимого текста от предыдущего текста.
 
     Возвращает:
         Ничего.
@@ -197,7 +197,7 @@ def output_data_to_txt(
         encoding (str): Кодировка, в которой необходимо записать данные в файл.
     """
 
-    with open(file_name, write_mode, encoding) as txt_file:
+    with open(file_name, write_mode, encoding=encoding) as txt_file:
         txt_file.write(data_to_write)
 
 
@@ -220,5 +220,5 @@ def output_data_to_csv(
     """
 
     with open(file_name, write_mode, newline='', encoding=encoding) as csv_file:
-        writer = csv.writer(csv_file, delimiter)
+        writer = csv.writer(csv_file, delimiter=delimiter)
         writer.writerows(data_to_write)
