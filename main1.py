@@ -9,25 +9,23 @@ print('''
 
 ## DEPENDENCIES
 # встроенные библиотеки python
-import csv
 import math
-import json
 import os
 from tabulate import tabulate
 
 # самописные функции
-from additional_functions import input_output
-#from additional_functions import servers_calculation
-from additional_functions import sources_calculation
-from additional_functions import data_processing
-from additional_functions import work_with_json
+from additional_functions import input_output           # форматированный ввод и вывод данных 
+from additional_functions import servers_calculation    # расчет параметров ТХ серверов
+from additional_functions import sources_calculation    # расчет параметров источников
+from additional_functions import data_processing        # обработка данных
+from additional_functions import work_with_json         # работа с json файлами
 
 ##GLOBALS
 #Цветовые коды
-RED = '\033[31m'
-GREEN = '\033[32m'
-YELLOW = '\033[33m'
-RESET = '\033[0m'  #сброс на дефолт
+#RED = '\033[31m'
+#GREEN = '\033[32m'
+#YELLOW = '\033[33m'
+#RESET = '\033[0m'  #сброс на дефолт
 
 
 #Константы JSON файлов с параматрами по-умолчанию создаваемой конфигурации
@@ -47,13 +45,12 @@ CSV_OUTPUT_ENCODING = 'windows-1251'
 CSV_OUTPUT_DELIMITER = ';'
 CSV_OUTPUT_NEWLINE = ''
 
-
+#TODO добавить валидацию всех json файлов 
 #INT MAIN
 if __name__ == '__main__':
     
     servers_list = []               #лист для хранения всех объектов dict(), содержащих конфигурацию серверов
     unfiltred_sources_list = []     #список всех источников (объекты класса dict()), до фильтрации
-    filtred_sources_list = []       #список всех источников с отфильтрованными параметрами (определенными выбранными полями)
     sources_fields_for_filter = [   #список полей источников, которые будут участвовать в фильтрации
         'name',
         'files',
@@ -76,19 +73,20 @@ if __name__ == '__main__':
         'Необходимо ВМ на этот источник',
         'Генерируемый объем хранилища,\nГБ в час']
 
-    #импорт данных по умолчанию из json-файлов в словари
+    #импорт данных по умолчанию из json-файлов в словарь
     installation_parameters = work_with_json.load_data_from_json(JSON_FILE_INSTALLATION_PARAMETERS, 'installation_parameters')
     
-    ## НАЧАЛО РАБОТЫ СО СКРИПТОМ
+    ## первая часть скрипта - узнаем и считаем и всякое прочее исходную нагрузку, что повлияет на дальнейшие расчеты
     # Выбор как работать со скриптом - самый первый вопрос
     main_work_mode_choice = input_output.input_choise_digit(
         '\nДоступные варианты расчета технических характеристик под сервера PT SB:\n'
-        '1. Расчет ТХ серверов (а также их количества) на основании известных или около известных показателей нагрузки с различных источников\n'
-        '2. Расчет ТХ серверов (а также их количества) на основании вручную вводимых показателей нагрузки на статику и динамику в час\n'
-        '3. Полностью ручной расчет ТХ серверов на основании вручную вводимого количества ВМ на сервер и количества серверов',
+        '1. Расчет ТХ серверов (а также их количества) на основании известных или около известных показателей нагрузки с различных источников.\n'
+        '2. Расчет ТХ серверов (а также их количества) на основании вручную вводимых показателей нагрузки на статику и динамику в час.\n'
+        '3. Полностью ручной расчет ТХ серверов на основании вручную вводимого количества ВМ на сервер и количества серверов.',
         3
     )
 
+    # TODO подумать что лучше - создавать словарь с параметрами источника тут или в функциях расчета
     # расчет ТХ через расчет нагрузки с источников 
     if main_work_mode_choice == 1:
         input_output.print_header('Расчет нагрузки с источников', header_level=1, newline_indent=2)
@@ -178,7 +176,7 @@ if __name__ == '__main__':
             f"Введите количество дней, в течение которых должны сохраняться данные (по умолчанию - {installation_parameters['days_to_save_data']}): ",
             installation_parameters['days_to_save_data']
         )
-        installation_parameters['overall_storage_size'] = (
+        installation_parameters['overall_storage_size'] = math.ceil(
             installation_parameters['generated_storage_size_per_hour'] *
             installation_parameters['hours_of_generation_storage'] *
             installation_parameters['days_to_save_data']
@@ -275,11 +273,11 @@ if __name__ == '__main__':
                 installation_parameters['days_to_save_data']
             )
             # итоговое место = ( (размер_файла * количество_статических_заданий * количество_часов * количество_дней) / 1024 )
-            installation_parameters['overall_storage_size'] = round( (
+            installation_parameters['overall_storage_size'] = math.ceil(
                 installation_parameters['one_task_size'] *
                 installation_parameters['overall_static'] *
                 installation_parameters['hours_of_generation_storage'] *
-                installation_parameters['days_to_save_data'] / 1024) , 2)
+                installation_parameters['days_to_save_data'] / 1024)
             
         # выводим всё, что насчитали по введённым параметрам
         input_output.print_header('Итоговые показатели', 2)
@@ -294,8 +292,69 @@ if __name__ == '__main__':
         # выводим дисковое пространство 
         print(f"Генерируемый объем файлов заданий за всё время (ГБ): {installation_parameters['overall_storage_size']}")
 
-    # расчет ТХ на основании вручную вводимого количества ВМ
+    # расчет ТХ только на основании вручную вводимого количества ВМ
     elif main_work_mode_choice == 3:
         input_output.print_header('Полностью ручная конфигурация', header_level=1, newline_indent=2)
         installation_parameters['overall_static'] = input_output.input_integer_number('Введите количество статических заданий в час, т.к. оно влияет на ТХ серверов управления: ')
-        
+        installation_parameters['overall_storage_size'] = input_output.input_integer_number('Введите размер хранилища в ГБ, если требуется: ')
+
+    #расчет места под базовые образы в зависимости от их количества
+    input_output.print_header('Расчет места под базовые образы')
+    installation_parameters['iso_amount'] = input_output.input_integer_with_default(
+        'Введите количество базовых образов, которые будут установлены на стенде\n'
+        f"Важно: образ это не то же самое, что виртуальная машина", installation_parameters['iso_amount']
+    )
+
+
+    # вторая часть скрипта - считаем итоговую конфигурацию
+    input_output.print_header('Создание конфигурации инсталляции', header_level=1, newline_indent=2)
+    global_installation_choise = input_output.input_choise_digit(
+        'Введите цифру, соответствующую необходимой конфигурации инсталляции:\n'
+        '1. All-in-One на одном сервере.\n'
+        '2. Высоконагруженная конфигурация. При этом, на сервере управления также поддерживаются динамические исследования.\n'
+        '3. Высоконагруженная конфигурация. При этом, на сервере управления не устанавливаются компоненты Xen и не используются динамические исследования.\n'
+        '4. Отказоустойчивый кластер.', 4
+    )
+
+    # расчет AiO инсталляции
+    if global_installation_choise == 1:
+        # проверяем, что количество ВМ не превышает количество ВМ для AiO
+        if installation_parameters['overall_vms'] <= installation_parameters['vms_for_master']:
+            installation_parameters['overall_vms'] = input_output.input_integer_with_default(
+                '\nВведите количество ВМ для сервера AiO'
+                f"(по умолчанию будет использоваться рекомендованное количество - {installation_parameters['overall_vms']}): ",
+                installation_parameters['overall_vms']
+            )
+        #если всё же превышено, то выводим предупреждение
+        else:
+            installation_parameters['overall_vms'] = input_output.input_integer_with_default(
+                f"\nВнимание! Для AiO инсталляции поддерживается не более {installation_parameters['vms_for_master']} ВМ.\n"
+                f"Ранее расчитанное рекомендованное количество ВМ: {installation_parameters['overall_vms']}\n"
+                "Введите количество ВМ, на которое расчитывается инсталляция: "
+                f"(по умолчанию будет использоваться максимально возможное количество - {installation_parameters['vms_for_master']}): ",
+                installation_parameters['vms_for_master']
+            )
+
+        # TODO подумать что лучше - создавать объект сервера здесь или в файле servers_calculation
+        # создаем сущность (объект типа dict()) с конфигурацией сервера AiO и добавляем его в список
+        aio_server_parameters = work_with_json.load_data_from_json(JSON_FILE_SERVERS_PARAMETERS, 'master_with_dynamic_parameters')
+        servers_list.append(
+            servers_calculation.calculate_master_with_dynamic(
+                aio_server_parameters,
+                installation_parameters['overall_vms'],
+                installation_parameters['iso_amount'],
+                installation_parameters['overall_storage_size']
+            )
+        )
+    
+    # расчет сервер управления с ПА + дополнительные сервера ПА
+    elif global_installation_choise == 2:
+        pass
+
+    # расчет сервер управления без ПА + дополнительные сервера ПА
+    elif global_installation_choise == 3:
+        pass
+
+    # расчет отказоустойчивость + дополнительные сервера ПА
+    elif global_installation_choise == 4:
+        pass

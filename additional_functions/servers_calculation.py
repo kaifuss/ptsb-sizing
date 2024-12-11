@@ -1,17 +1,23 @@
+# встроенны библиотеки
 import math
-import input_output
-import work_with_json
 
+# самописные функции
+from additional_functions import input_output
+#from additional_functions import work_with_json
+
+# к-фт домонжения ГиБ в ГБ
+GIB_MULTIPLIER = 1.074
 
 #расчет ТХ сервера управления с вкл функцией ПА
-def calculate_master_with_dynamic(server_parameters: dict, vms_amount: int, iso_amount: int) -> dict:
+def calculate_master_with_dynamic(server_parameters: dict, vms_amount: int, iso_amount: int, storage_increment: int) -> dict:
     """
-    Расчитывает параметры ТХ сервера управления с вкл функцией ПА по параметрам vms_amount и iso_amount
+    Расчитывает параметры ТХ сервера управления с вкл функцией ПА по количеству запускаемых ВМ, количеству ISO образов и инкременту хранилища.
 
     Параметры:
         server_parameters (dict): Словарь с параметрами ТХ по-умолчанию сервера управления с вкл функцией ПА.
         vms_amount (int): Количество ВМ на сервер управления с вкл функцией ПА.
-        iso_amount (int): Количество ISO на сервер управления с вкл функцией ПА.
+        iso_amount (int): Количество ISO на всю инсталляцию.
+        storage_increment (int): Надбавка к хранилищу для сервера управления с вкл функцией ПА.
     
     Возвращает:
         dict: Обновленный словарь с параметрами ТХ сервера управления с вкл функцией ПА.
@@ -20,18 +26,18 @@ def calculate_master_with_dynamic(server_parameters: dict, vms_amount: int, iso_
     # меняем описание сервера под актуальное число ВМ
     server_parameters['server_role'] = f"Сервер управления с функцией ПА\nКоличество ВМ: {vms_amount}"
 
-    # V_root = N_ВМ + 118
-    server_parameters['root_space'] = math.ceil((vms_amount + server_parameters['root_space']) * 1.074)
+    # V_root = (N_ВМ + 118)
+    server_parameters['root_space'] = vms_amount + server_parameters['root_space']
     
-    # V_opt = N_ВМ + 15 * N_ISO + 43
-    server_parameters['opt_space'] = math.ceil((vms_amount + 15 * iso_amount + server_parameters['opt_space']) * 1.074)
+    # V_opt = (N_ВМ + 15 * N_ISO + 43)
+    server_parameters['opt_space'] = vms_amount + 15 * iso_amount + server_parameters['opt_space']
 
-    # V_minio = 8 * N_ISO + 50
-    server_parameters['minio_space'] = math.ceil((8 * iso_amount + server_parameters['minio_space']) * 1.074)
-    
-    # рекомендация по домножению на 8%
-    for key in ['root_space', 'opt_space', 'minio_space', 'home_space']:
-        server_parameters[key] = math.ceil(server_parameters[key] * server_parameters['part_multiplier'])
+    # V_minio = (8 * N_ISO + 50 + storage_increment)
+    server_parameters['minio_space'] = 8 * iso_amount + server_parameters['minio_space'] + storage_increment
+
+    # рекомендация по домножению на 8% и на 1.074 для перевода из ГиБ в ГБ
+    for partition in ['root_space', 'opt_space', 'minio_space', 'home_space']:
+        server_parameters[partition] = math.ceil(server_parameters[partition] * server_parameters['part_multiplier'] * GIB_MULTIPLIER)
 
     # складываем изначальный размер ssd со всем, что было вычислено
     server_parameters['ssd_size'] = (
@@ -50,32 +56,33 @@ def calculate_master_with_dynamic(server_parameters: dict, vms_amount: int, iso_
     # CPU Threads = 3 * N_ВМ + 9
     server_parameters['theads_amount'] = 3 * vms_amount + 9
 
-    # RAM = 4 * N_ВМ + 19
+    # RAM = (4 * N_ВМ + 19) * 1.074
     server_parameters['ram_amount'] = math.ceil((4 * vms_amount + 19) * 1.074)
     
     return server_parameters
 
 
 #расчет ТХ сервера управления без функции ПА  
-def calculate_master_without_dynamic(server_parameters: dict, iso_amount: int, static_tasks: int) -> dict:
+def calculate_master_without_dynamic(server_parameters: dict, iso_amount: int, static_tasks: int, storage_increment: int) -> dict:
     """
-    Расчитывает параметры ТХ сервера управления без ПА по параметрам iso_amount и static_tasks
+    Расчитывает параметры ТХ сервера управления без ПА по параметрам количеству заданий в час, количеству ISO образов и инкременту хранилища.
 
     Параметры:
         server_parameters (dict): Словарь с параметрами ТХ по-умолчанию сервера управления без ПА.
-        iso_amount (int): Количество ISO на сервер управления с вкл функцией ПА.
+        iso_amount (int): Количество ISO на всю инсталляцию.
         static_tasks (int): Количество статических заданий в час на сервер управления без ПА.
+        storage_increment (int): Надбавка к хранилищу для сохранения проверенных файлов.
     
     Возвращает:
         dict: Обновленный словарь с параметрами ТХ сервера управления без ПА.
     """
 
     # V_minio = 8 * N_ISO + 50
-    server_parameters['minio_space'] = math.ceil((8 * iso_amount + server_parameters['minio_space']) * 1.074)
+    server_parameters['minio_space'] = 8 * iso_amount + server_parameters['minio_space']
 
-    # рекомендация по домножению на 8%
-    for key in ['root_space', 'opt_space', 'minio_space', 'home_space']:
-        server_parameters[key] = math.ceil(server_parameters[key] * server_parameters['part_multiplier'])
+    # рекомендация по домножению на 8% и на 1.074 для перевода из ГиБ в ГБ
+    for partition in ['root_space', 'opt_space', 'minio_space', 'home_space']:
+        server_parameters[partition] = math.ceil(server_parameters[partition] * server_parameters['part_multiplier'] * GIB_MULTIPLIER)
 
     # складываем изначальный размер ssd со всем, что было вычислено
     server_parameters['ssd_size'] = (
@@ -90,21 +97,19 @@ def calculate_master_without_dynamic(server_parameters: dict, iso_amount: int, s
     )    
     
     # железо задаётся по количеству статических заданий (жесткая таблица от вендрора, формул расчета нет)
-    if static_tasks < 100:
-        server_parameters['theads_amount'] = 4
-        server_parameters['ram_amount'] = 16
-    elif (static_tasks >= 100 ) and (static_tasks < 1_000):
-        server_parameters['theads_amount'] = 6
-        server_parameters['ram_amount'] = 32
-    elif (static_tasks >= 1_000) and (static_tasks < 5_000):
-        server_parameters['theads_amount'] = 10
-        server_parameters['ram_amount'] = 32
-    elif (static_tasks >= 5_000) and (static_tasks < 10_000):
-        server_parameters['theads_amount'] = 15
-        server_parameters['ram_amount'] = 32
-    elif (static_tasks >= 10_000):
-        server_parameters['theads_amount'] = 48
-        server_parameters['ram_amount'] = 64
+    ranges_of_static_tasks = [
+        (0, 100, 4, 16),
+        (100, 1_000, 6, 32),
+        (1_000, 5_000, 10, 32),
+        (5_000, 10_000, 15, 32),
+        (10_000, float('inf'), 48, 64)
+    ]
+
+    for lower, upper, threads, ram in ranges_of_static_tasks:
+        if lower <= static_tasks < upper:
+            server_parameters['theads_amount'] = threads
+            server_parameters['ram_amount'] = ram
+            break
     
     return server_parameters
 
@@ -112,7 +117,7 @@ def calculate_master_without_dynamic(server_parameters: dict, iso_amount: int, s
 #расчет ТХ дополнительного сервера с функцией ПА
 def calculate_additional_server_with_vms(server_parameters: dict, vms_amount: int, iso_amount: int) -> dict:
     """
-    Расчитывает параметры ТХ доп. сервера с функцией ПА по параметрам vms_amount и iso_amount.
+    Расчитывает параметры ТХ доп. сервера с функцией ПА по количеству запускаемых ВМ и количеству ISO образов.
 
     Параметры:
         server_parameters (dict): Словарь с параметрами ТХ по-умолчанию доп. сервера с ПА.
@@ -127,14 +132,14 @@ def calculate_additional_server_with_vms(server_parameters: dict, vms_amount: in
     server_parameters['server_role'] = f"Дополнительный сервер с функцией ПА\nКоличество ВМ: {vms_amount}"
 
     # V_root = N_ВМ + 118
-    server_parameters['root_space'] = math.ceil((vms_amount + server_parameters['root_space']) * 1.074)
+    server_parameters['root_space'] = vms_amount + server_parameters['root_space']
     
     # V_opt = N_ВМ + 15 * N_ISO - 2
-    server_parameters['opt_space'] = math.ceil((vms_amount + 15 * iso_amount - 2) * 1.074)
+    server_parameters['opt_space'] = vms_amount + 15 * iso_amount - 2
     
-    # рекомендация по домножению на 8%
-    for key in ['root_space', 'opt_space', 'minio_space', 'home_space']:
-        server_parameters[key] = math.ceil(server_parameters[key] * server_parameters['part_multiplier'])
+    # рекомендация по домножению на 8% и на 1.074 для перевода из ГиБ в ГБ
+    for partition in ['root_space', 'opt_space', 'minio_space', 'home_space']:
+        server_parameters[partition] = math.ceil(server_parameters[partition] * server_parameters['part_multiplier'] * GIB_MULTIPLIER)
 
     # складываем изначальный размер ssd со всем, что было вычислено
     server_parameters['ssd_size'] = (
@@ -156,13 +161,13 @@ def calculate_additional_server_with_vms(server_parameters: dict, vms_amount: in
     
     return server_parameters
 
-
+#TODO переписать?
 #расчет всех доп серверов с динамикой
-def get_all_additional_servers(vms_all, vms_per_server, iso_amount):
+def get_all_additional_servers(vms_all: int, vms_per_server: int, iso_amount: int) -> list[dict]:
     dynamic_servers_list = []
     dynamic_servers_amount = math.ceil(vms_all / vms_per_server)
-    print_header('Расчет ТХ для доп. серверов динамики')
-    input_calculation_type = input_choise_digit(
+    input_output.print_header('Расчет ТХ для всех доп. серверов динамики')
+    input_calculation_type = input_output.input_choise_digit(
         f"1. Расчет ТХ для {dynamic_servers_amount} доп серверов(-а) под общее количество ВМ {vms_all} (не более {vms_per_server} ВМ на сервер)\n"
         '2. Вручную ввести количество дополнительных серверов и количество ВМ для каждого сервера', 2
     )
