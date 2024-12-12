@@ -335,26 +335,96 @@ if __name__ == '__main__':
                 installation_parameters['vms_for_master']
             )
 
-        # TODO подумать что лучше - создавать объект сервера здесь или в файле servers_calculation
-        # создаем сущность (объект типа dict()) с конфигурацией сервера AiO и добавляем его в список
-        aio_server_parameters = work_with_json.load_data_from_json(JSON_FILE_SERVERS_PARAMETERS, 'master_with_dynamic_parameters')
-        servers_list.append(
-            servers_calculation.calculate_master_with_dynamic(
-                aio_server_parameters,
-                installation_parameters['overall_vms'],
-                installation_parameters['iso_amount'],
-                installation_parameters['overall_storage_size']
-            )
+        # создаем AiO сервер и добавляем его в свой список
+        servers_list.append(servers_calculation.calculate_master_with_dynamic(
+            installation_parameters['overall_vms'],
+            installation_parameters['iso_amount'],
+            installation_parameters['overall_storage_size'])
         )
     
     # расчет сервер управления с ПА + дополнительные сервера ПА
     elif global_installation_choise == 2:
-        pass
+        # считаем как распределить ВМ между сервером управления и дополнительными серверами ПА
+        # vms_all <= vms_for_master < vms_for_additional
+        if installation_parameters['overall_vms'] <= installation_parameters['vms_for_master']:
+            vms_for_master = installation_parameters['vms_for_master']
+            vms_for_additionals = installation_parameters['vms_for_additional']
+        # vms_for_master < vms_all <= vms_for_additional
+        elif installation_parameters['vms_for_master'] < installation_parameters['overall_vms'] <= installation_parameters['vms_for_additional']:
+            vms_for_master = installation_parameters['vms_for_master']
+            vms_for_additionals = installation_parameters['overall_vms'] - vms_for_master
+        # vms_for_master < vms_for_additional < vms_all
+        elif installation_parameters['overall_vms'] > installation_parameters['vms_for_additional']:
+            vms_for_master = installation_parameters['overall_vms'] % installation_parameters['vms_for_additional']
+            vms_for_additionals = installation_parameters['overall_vms'] - vms_for_master
+
+        # спрашиваем пользователя, устраивает ли его то, что мы предложили:
+        input_output.print_header('Расчет конфигурации сервера урпавления с функцией ПА')
+        master_config_choise = input_output.input_choise_digit(
+            f"1. Расчет ТХ под сервер управления с {installation_parameters['vms_for_master']} (максимально возможным числом) ВМ.\n"
+            f"2. Расчет ТХ под сервер управления с {vms_for_master} ВМ. Тогда оставшиеся {vms_for_additionals} ВМ уйдут на дополнительные серверы ПА.\n"
+            f"3. Вручную ввести количество ВМ для сервера управления.",3
+        )
+
+        if master_config_choise == 1:
+            vms_for_master = installation_parameters['vms_for_master']
+        elif master_config_choise == 3:
+            vms_for_master = input_output.input_integer_number(
+                'Введите количество ВМ для сервера управления с функцией ПА: '
+            )
+        
+        # расчет 1 сервера управления с функцией ПА
+        servers_list.append(servers_calculation.calculate_master_with_dynamic(
+            vms_for_master,
+            installation_parameters['iso_amount'],
+            installation_parameters['overall_storage_size'])
+        )
+        # расчет всех дополнительных серверов ПА
+        servers_list.extend(servers_calculation.get_all_additional_servers(
+            vms_for_additionals,
+            installation_parameters['vms_for_additional'],
+            installation_parameters['iso_amount'])
+        )
 
     # расчет сервер управления без ПА + дополнительные сервера ПА
     elif global_installation_choise == 3:
-        pass
+        # расчет 1 сервера управления без функции ПА
+        servers_list.append(servers_calculation.calculate_master_without_dynamic(
+            installation_parameters['iso_amount'],
+            installation_parameters['overall_static'],
+            installation_parameters['overall_storage_size'])
+        )
+
+        # расчет всех дополнительных серверов ПА
+        servers_list.extend(servers_calculation.get_all_additional_servers(
+            installation_parameters['overall_vms'],
+            installation_parameters['vms_for_additional'],
+            installation_parameters['iso_amount'])
+        )
 
     # расчет отказоустойчивость + дополнительные сервера ПА
     elif global_installation_choise == 4:
-        pass
+        # узнаем количество серверов управления
+        input_output.print_header('Параметры кластера')
+        master_servers_amount = input_output.input_odd_number('Введите количество серверов управления в данной инсталляции (нечетное число): ')
+        for i in range(master_servers_amount):
+            servers_list.append(servers_calculation.calculate_master_without_dynamic(
+                installation_parameters['iso_amount'],
+                installation_parameters['overall_static'],
+                installation_parameters['overall_storage_size'])
+            )
+
+        # и добавляем ноды динамики
+        servers_list.extend(servers_calculation.get_all_additional_servers(
+            installation_parameters['overall_vms'],
+            installation_parameters['vms_for_additional'],
+            installation_parameters['iso_amount'])
+        )
+
+    
+    #TODO красивый выводв в оба типа файлов
+    # сделать так, что объект-сущность-источник создается в sources_calculation
+    # уникальные имена для всех серверов
+    # перенести json -> processing
+    # сделать валидацию json-файлов
+    # придумать что-то с точками в csv файлах (чтобы эксель нормально кушал)
