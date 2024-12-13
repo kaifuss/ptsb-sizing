@@ -4,7 +4,7 @@ import os
 
 # самописные функции
 from additional_functions import input_output
-from additional_functions import work_with_json
+from additional_functions import data_processing
 
 # путь к файлу с параметрами по-умолчанию
 PATH_TO_DEFAULT_VALUES = 'default_values'
@@ -28,7 +28,7 @@ def calculate_master_with_dynamic(vms_amount: int, iso_amount: int, storage_incr
     """
     
     # импортируем параметры по умолчанию для сервера из json-объекта
-    server_parameters = work_with_json.load_data_from_json(JSON_FILE_SERVERS_PARAMETERS, 'master_with_dynamic_parameters')
+    server_parameters = data_processing.load_data_from_json(JSON_FILE_SERVERS_PARAMETERS, 'master_with_dynamic_parameters')
     # меняем описание сервера под актуальное число ВМ
     server_parameters['server_role'] = f"Сервер управления с функцией ПА\nКоличество ВМ: {vms_amount}"
 
@@ -79,7 +79,7 @@ def calculate_master_without_dynamic(iso_amount: int, static_tasks: int, storage
     """
 
     # импортируем параметры по умолчанию для сервера из json-объекта
-    server_parameters = work_with_json.load_data_from_json(JSON_FILE_SERVERS_PARAMETERS, 'master_without_dynamic_parameters')
+    server_parameters = data_processing.load_data_from_json(JSON_FILE_SERVERS_PARAMETERS, 'master_without_dynamic_parameters')
 
     # V_minio = 8 * N_ISO + 50
     server_parameters['minio_space'] = 8 * iso_amount + server_parameters['minio_space']
@@ -130,7 +130,7 @@ def calculate_additional_server_with_vms(vms_amount: int, iso_amount: int) -> di
     """
 
     # импортируем параметры по умолчанию для сервера из json-объекта
-    server_parameters = work_with_json.load_data_from_json(JSON_FILE_SERVERS_PARAMETERS, 'additional_dynamic_parameters')
+    server_parameters = data_processing.load_data_from_json(JSON_FILE_SERVERS_PARAMETERS, 'additional_dynamic_parameters')
     # обновнляем название сервера под количество ВМ
     server_parameters['server_role'] = f"Дополнительный сервер с функцией ПА\nКоличество ВМ: {vms_amount}"
 

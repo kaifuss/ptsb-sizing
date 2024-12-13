@@ -1,10 +1,16 @@
 #встрооенные библиотеки питона
 import math
+import os
 
 #самописные функции
 from additional_functions import input_output
+from additional_functions import data_processing
 
-#TODO обратиться к файлу, который давал костя, чтобы из него взять показатель для каждого типа источника - размер файла
+#Константы JSON файлов с параматрами по-умолчанию создаваемой конфигурации
+PATH_TO_DEFAULT_VALUES = 'default_values'
+JSON_FILE_SOURCES_PARAMETERS = os.path.join(PATH_TO_DEFAULT_VALUES, 'sources_parameters.json')
+
+
 # посчитать генерируемый объем файлового хранилища с каждого источника
 def get_generated_storage_size(tasks_per_hour: int, one_task_size: float) -> float:
     """
@@ -26,6 +32,7 @@ def get_generated_storage_size(tasks_per_hour: int, one_task_size: float) -> flo
     generated_size_gb = round((tasks_per_hour * one_task_size) / 1024, 2)
 
     return generated_size_gb
+
 
 #получить % отсечки для ПА для любого источника
 def get_dynamic_cutoff(default_value: int) -> float:
@@ -94,17 +101,17 @@ def get_time_to_scan(default_value: int):
 
 
 #расчет нагрузки с почтового трафика
-def get_smtp_load(smtp_source_parameters: dict) -> dict:
+def get_smtp_load() -> dict:
     """
-    Обрабатывает показатели статической и динамическоой нагрузки на smtp источник проверки файлов. 
-
-    Параметры:
-        smtp_source_parameters (dict): Словарь с параметрами источника по-умолчанию, которые будут использоваться, если пользователь ничего не введет в процессе конфигурации.
+    Создает smtp объект-источник с параметрами по умолчанию. Обрабатывает показатели статической и динамическоой нагрузки. 
 
     Возвращает:
-        dict: обновленный словарь с показателями нагрузки smtp источника.
+        dict: Созданный словарь с показателями нагрузки smtp источника.
     """
     
+    # создаем объект-источник с параметрами по умолчанию
+    smtp_source_parameters = data_processing.load_data_from_json(JSON_FILE_SOURCES_PARAMETERS, 'smtp_source_parameters')
+
     #Если количество писем в час - неизвестно, то расчет идет от количества пользователей.
     if not input_output.input_yes_no('Известно ли количество писем в час с данного источника?'):
         
@@ -192,17 +199,17 @@ def get_smtp_load(smtp_source_parameters: dict) -> dict:
 
 
 #расчет нагрузки с ICAP
-def get_icap_load(icap_source_parameters: dict) -> dict:
+def get_icap_load() -> dict:
     """
-    Обрабатывает показатели статической и динамическоой нагрузки на icap источник проверки файлов. 
-
-    Параметры:
-        icap_source_parameters (dict): Словарь с параметрами источника по-умолчанию, которые будут использоваться, если пользователь ничего не введет в процессе конфигурации.
+    Создает icap объект-источник с параметрами по умолчанию. Обрабатывает показатели статической и динамическоой нагрузки.
 
     Возвращает:
-        dict: обновленный словарь с показателями нагрузки icap источника.
+        dict: Созданный словарь с показателями нагрузки icap источника.
     """
     
+    # создаем объект-источник с параметрами по-умолчанию
+    icap_source_parameters = data_processing.load_data_from_json(JSON_FILE_SOURCES_PARAMETERS, 'icap_source_parameters')
+
     # если количество файлов неизвестно, то вычисляем среднее количество из пропорции:
     if input_output.input_yes_no('Известно ли количетсво файлов в трафике за час?'):
         icap_source_parameters['files'] = input_output.input_integer_number('Введите количество файлов в час: ')
@@ -235,16 +242,16 @@ def get_icap_load(icap_source_parameters: dict) -> dict:
 
 
 #расчет нагрузки с MP 10 EDR
-def get_edr_load(edr_source_parameters: dict) -> dict:
+def get_edr_load() -> dict:
     """
-    Обрабатывает показатели статической и динамическоой нагрузки на pt edr источник проверки файлов. 
-
-    Параметры:
-        edr_source_parameters (dict): Словарь с параметрами источника по-умолчанию, которые будут использоваться, если пользователь ничего не введет в процессе конфигурации.
+    Создает mp edr объект-источник с параметрами по умолчанию. Обрабатывает показатели статической и динамическоой нагрузки.
 
     Возвращает:
-        dict: обновленный словарь с показателями нагрузки pt edr источника.
+        dict: Созданный словарь с показателями нагрузки pt edr источника.
     """    
+
+    # создаем объект-источник с параметрами по-умолчанию
+    edr_source_parameters = data_processing.load_data_from_json(JSON_FILE_SOURCES_PARAMETERS, 'edr_source_parameters')
 
     # если количество файлов неизвестно, то вычисляем среднее количество через multiplier
     if input_output.input_yes_no('Известно ли общее количество файлов со всех агентов в час?'):
@@ -282,16 +289,16 @@ def get_edr_load(edr_source_parameters: dict) -> dict:
 
 
 #расчет нагрузки с API-источника с выбранными параметрами проверки
-def get_automated_api_load(automated_api_source_parameters: dict) -> dict:
+def get_automated_api_load() -> dict:
     """
-    Обрабатывает показатели статической и динамическоой нагрузки на настроенный api источник проверки файлов. 
-
-    Параметры:
-        automated_api_source_parameters (dict): Словарь с параметрами источника по-умолчанию, которые будут использоваться, если пользователь ничего не введет в процессе конфигурации.
+    Создает automated api объект-источник с параметрами по умолчанию. Обрабатывает показатели статической и динамическоой нагрузки.
 
     Возвращает:
-        dict: обновленный словарь с показателями нагрузки настроенного api источника.
+        dict: Созданный словарь с показателями нагрузки настроенного api источника.
     """
+
+    # создаем объект-источник с параметрами по-умолчанию
+    automated_api_source_parameters = data_processing.load_data_from_json(JSON_FILE_SOURCES_PARAMETERS, 'automated_api_source_parameters')
 
     # получаем количество файлов в час
     automated_api_source_parameters['files'] = input_output.input_integer_number('Введите примерное количество файлов в час: ')
@@ -321,16 +328,16 @@ def get_automated_api_load(automated_api_source_parameters: dict) -> dict:
 
 
 #расчет нагрузки с API-источника с ручными параметрами проверки
-def get_manual_api_load(manual_api_source_parameters: dict) -> dict:
+def get_manual_api_load() -> dict:
     """
-    Обрабатывает показатели статической и динамическоой нагрузки на ручной api источник проверки файлов. 
-
-    Параметры:
-        manual_api_source_parameters (dict): Словарь с параметрами источника по-умолчанию, которые будут использоваться, если пользователь ничего не введет в процессе конфигурации.
+    Создает manual api объект-источник с параметрами по умолчанию. Обрабатывает показатели статической и динамическоой нагрузки.
 
     Возвращает:
-        dict: обновленный словарь с показателями нагрузки ручного api источника.
+        dict: Созданный словарь с показателями нагрузки ручного api источника.
     """
+
+    # создаем объект-источник с параметрами по-умолчанию
+    manual_api_source_parameters = data_processing.load_data_from_json(JSON_FILE_SOURCES_PARAMETERS, 'manual_api_source_parameters')
 
     # получаем количество файлов в час
     manual_api_source_parameters['files'] = input_output.input_integer_number('Введите примерное количество файлов в час: ')
@@ -358,16 +365,16 @@ def get_manual_api_load(manual_api_source_parameters: dict) -> dict:
 
 
 #расчет нагрузки с хранилища файлов
-def get_storage_load(storage_source_parameters: dict) -> dict:
+def get_storage_load() -> dict:
     """
-    Обрабатывает показатели статической и динамическоой нагрузки на файловую шару источник проверки файлов. 
-
-    Параметры:
-        storage_source_parameters (dict): Словарь с параметрами источника по-умолчанию, которые будут использоваться, если пользователь ничего не введет в процессе конфигурации.
+    Создает storage объект-источник с параметрами по умолчанию. Обрабатывает показатели статической и динамическоой нагрузки.
 
     Возвращает:
-        dict: обновленный словарь с показателями нагрузки источника файловой шары.
+        dict: Созданный словарь с показателями нагрузки источника файловой шары.
     """
+
+    # создаем объект-источник с параметрами по-умолчанию
+    storage_source_parameters = data_processing.load_data_from_json(JSON_FILE_SOURCES_PARAMETERS, 'storage_source_parameters')
 
     # получаем грубые показатели (а иначе никак :/ ) 
     storage_source_parameters['files'] = input_output.input_integer_number('Введите примерное количество файлов в час, которые будут проверяться статикой: ')

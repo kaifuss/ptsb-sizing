@@ -1,4 +1,4 @@
-
+# встроенные библиотеки
 import csv
 
 #GLOBALS

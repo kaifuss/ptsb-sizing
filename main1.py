@@ -18,7 +18,6 @@ from additional_functions import input_output           # форматирова
 from additional_functions import servers_calculation    # расчет параметров ТХ серверов
 from additional_functions import sources_calculation    # расчет параметров источников
 from additional_functions import data_processing        # обработка данных
-from additional_functions import work_with_json         # работа с json файлами
 
 ##GLOBALS
 #Цветовые коды
@@ -33,6 +32,11 @@ PATH_TO_DEFAULT_VALUES = 'default_values'
 JSON_FILE_INSTALLATION_PARAMETERS = os.path.join(PATH_TO_DEFAULT_VALUES, 'installation_parameters.json')
 JSON_FILE_SOURCES_PARAMETERS = os.path.join(PATH_TO_DEFAULT_VALUES, 'sources_parameters.json')
 JSON_FILE_SERVERS_PARAMETERS = os.path.join(PATH_TO_DEFAULT_VALUES, 'servers_parameters.json')
+# валидация json файлов перед запуском скрипта
+for json_file in [JSON_FILE_INSTALLATION_PARAMETERS, JSON_FILE_SOURCES_PARAMETERS, JSON_FILE_SERVERS_PARAMETERS]:
+    if not data_processing.validate_json(json_file):
+        print(f"Ошибка при валидации JSON-файла {json_file}. Проверьте синтаксис файла.\n\nПринудительная остановка скрипта.")
+        exit() 
 
 #Константы файлов, куда будут сохраняться результаты работы
 PATH_TO_OUTPUT_FILES = 'output_files'
@@ -45,38 +49,60 @@ CSV_OUTPUT_ENCODING = 'windows-1251'
 CSV_OUTPUT_DELIMITER = ';'
 CSV_OUTPUT_NEWLINE = ''
 
-#TODO добавить валидацию всех json файлов 
+
 #INT MAIN
 if __name__ == '__main__':
+
+    #TODO
+    # флаг-симофор, отвечающий за метод вывода данных в файлы. переключится, если был первый вывод
     
-    servers_list = []               #лист для хранения всех объектов dict(), содержащих конфигурацию серверов
-    unfiltred_sources_list = []     #список всех источников (объекты класса dict()), до фильтрации
-    sources_fields_for_filter = [   #список полей источников, которые будут участвовать в фильтрации
-        'name',
-        'files',
-        'dynamic_load',
-        'time_to_scan',
-        'vms_needed',
-        'generated_storage_size']
+
+    servers_list = []               #списрок для хранения всех объектов dict(), содержащих конфигурацию серверов
+    sources_list = []               #список всех источников (объекты класса dict()), до фильтрации
     
-    original_sources_fields_for_display = [   #список полей источников, которые будут участвовать в создании таблицы
+    sources_fields_for_display = [          #список полей источников, которые будут участвовать в создании таблицы
         'files',
         'dynamic_load',
         'time_to_scan',
         'vms_needed',
         'generated_storage_size']        
-
-    russian_sources_fields_for_display = [   #тот же список, только названия на русском, для красивого чтения и понимания
+    output_sources_fields_for_display = [   #тот же список, только для красивого вывода
         'Статических заданий,\nв час',
         'Динамических заданий,\nв час',
         'Время сканирования\n1 файла, в секундах',
         'Необходимо ВМ на этот источник',
         'Генерируемый объем хранилища,\nГБ в час']
+    
+    servers_fields_technical_characteristics = [            # список полей серверов, относящихся к таблице ТХ
+        'theads_amount',
+        'ram_amount',
+        'ssd_size',
+        'hdd_size',
+    ]
+    output_servers_fields_technical_characteristics = [     # тот же список, только для красивого вывода
+        'Процессор 2.2 Ггц, потоков',
+        'Память ОЗУ, Гб',
+        'SSD, Гб',
+        'HDD, Гб',
+    ]
+
+    servers_fields_partitioning = [             # список полей серверов, относящихся к таблице разметки
+        'root_space',
+        'opt_space',
+        'minio_space',
+        'home_space',
+    ]
+    output_servers_fields_partitioning = [      # тот же список, только для красивого вывода
+        '/                    [SSD]',
+        '/opt                 [SSD]',
+        '/opt/ptms/var/minio  [HDD]',
+        '/home                [HDD]',        
+    ]
 
     #импорт данных по умолчанию из json-файлов в словарь
-    installation_parameters = work_with_json.load_data_from_json(JSON_FILE_INSTALLATION_PARAMETERS, 'installation_parameters')
+    installation_parameters = data_processing.load_data_from_json(JSON_FILE_INSTALLATION_PARAMETERS, 'installation_parameters')
     
-    ## первая часть скрипта - узнаем и считаем и всякое прочее исходную нагрузку, что повлияет на дальнейшие расчеты
+    ## первая часть скрипта - узнаем и считаем и всякое прочее, исходную нагрузку, что повлияет на дальнейшие расчеты ТХ
     # Выбор как работать со скриптом - самый первый вопрос
     main_work_mode_choice = input_output.input_choise_digit(
         '\nДоступные варианты расчета технических характеристик под сервера PT SB:\n'
@@ -97,10 +123,9 @@ if __name__ == '__main__':
             smtp_sources_amount = input_output.input_integer_with_default('Введите количество smtp-источников (по умолчанию - 1): ', 1)
             for smtps_amount in range(smtp_sources_amount):
                 input_output.print_header(f'Заполнение параметров SMTP-источника №{smtps_amount + 1}', 3)
-                smtp_source_template = work_with_json.load_data_from_json(JSON_FILE_SOURCES_PARAMETERS, 'smtp_source_parameters')
-                new_smtp_source_parameters = sources_calculation.get_smtp_load(smtp_source_template)
+                new_smtp_source_parameters = sources_calculation.get_smtp_load()
                 new_smtp_source_parameters['name'] = f'SMTP-источник №{smtps_amount + 1}'
-                unfiltred_sources_list.append(new_smtp_source_parameters)
+                sources_list.append(new_smtp_source_parameters)
         
         #icap источник
         input_output.print_header('Сетевой трафик по ICAP', 2)
@@ -108,10 +133,9 @@ if __name__ == '__main__':
             icap_sources_amount = input_output.input_integer_with_default('Введите количество icap-источников (по умолчанию - 1): ', 1)
             for icaps_amount in range(icap_sources_amount):
                 input_output.print_header(f'Заполнение параметров ICAP-источника №{icaps_amount + 1}', 3)
-                icap_source_template = work_with_json.load_data_from_json(JSON_FILE_SOURCES_PARAMETERS, 'icap_source_parameters')
-                new_icap_source_parameters = sources_calculation.get_icap_load(icap_source_template)
+                new_icap_source_parameters = sources_calculation.get_icap_load()
                 new_icap_source_parameters['name'] = f'ICAP-источник №{icaps_amount + 1}'
-                unfiltred_sources_list.append(new_icap_source_parameters)
+                sources_list.append(new_icap_source_parameters)
 
         #агенты MP 10 EDR
         input_output.print_header('Агенты MP 10 EDR', 2)
@@ -119,10 +143,9 @@ if __name__ == '__main__':
             edr_sources_amount = input_output.input_integer_with_default('Введите количество edr-источников (по умолчанию - 1): ', 1)
             for edrs_amount in range(edr_sources_amount):
                 input_output.print_header(f'Заполнение параметров EDR-источника №{edrs_amount + 1}', 3)
-                edr_source_template = work_with_json.load_data_from_json(JSON_FILE_SOURCES_PARAMETERS, 'edr_source_parameters')
-                new_edr_source_parameters = sources_calculation.get_edr_load(edr_source_template)
+                new_edr_source_parameters = sources_calculation.get_edr_load()
                 new_edr_source_parameters['name'] = f'EDR-источник №{edrs_amount + 1}'
-                unfiltred_sources_list.append(new_edr_source_parameters)
+                sources_list.append(new_edr_source_parameters)
 
         #API из веб интерфейса (настраиваемый)
         input_output.print_header('Источник API c предустановленными параметрами', 2)
@@ -130,10 +153,9 @@ if __name__ == '__main__':
             automated_api_sources_amount = input_output.input_integer_with_default('Введите количество таких api-источников (по умолчанию - 1): ', 1)
             for automated_apis_amount in range(automated_api_sources_amount):
                 input_output.print_header(f'Заполнение параметров преднастраиваемого API-источника №{automated_apis_amount + 1}', 3)
-                automated_api_source_template = work_with_json.load_data_from_json(JSON_FILE_SOURCES_PARAMETERS, 'automated_api_source_parameters')
-                new_automated_api_source_parameters = sources_calculation.get_automated_api_load(automated_api_source_template)
+                new_automated_api_source_parameters = sources_calculation.get_automated_api_load()
                 new_automated_api_source_parameters['name'] = f'API-источник №{automated_apis_amount + 1}'
-                unfiltred_sources_list.append(new_automated_api_source_parameters)
+                sources_list.append(new_automated_api_source_parameters)
 
         #API сторонеего клиента (не настраиваемый)
         input_output.print_header('Источник API c пользовательскими параметрами', 2)
@@ -141,10 +163,9 @@ if __name__ == '__main__':
             manual_api_sources_amount = input_output.input_integer_with_default('Введите количество таких api-источников (по умолчанию - 1): ', 1)    
             for manual_apis_amount in range(manual_api_sources_amount):
                 input_output.print_header(f'Заполнение параметров ручного API-источника №{manual_apis_amount + 1}', 3)
-                manual_api_source_template = work_with_json.load_data_from_json(JSON_FILE_SOURCES_PARAMETERS, 'manual_api_source_parameters')
-                new_manual_api_source_parameters = sources_calculation.get_manual_api_load(manual_api_source_template)
+                new_manual_api_source_parameters = sources_calculation.get_manual_api_load()
                 new_manual_api_source_parameters['name'] = f'API-источник №{manual_apis_amount + 1}'
-                unfiltred_sources_list.append(new_manual_api_source_parameters)
+                sources_list.append(new_manual_api_source_parameters)
 
         #файловое хранилище
         input_output.print_header('Файловое хранилище', 2)
@@ -152,13 +173,12 @@ if __name__ == '__main__':
             storage_sources_amount = input_output.input_integer_with_default('Введите количество storage-источников (по умолчанию - 1): ', 1)
             for storages_amount in range(storage_sources_amount):
                 input_output.print_header(f'Заполнение параметров Storage-источника №{storages_amount + 1}', 3)
-                storage_source_template = work_with_json.load_data_from_json(JSON_FILE_SOURCES_PARAMETERS, 'storage_source_parameters')
-                new_storage_source_parameters = sources_calculation.get_storage_load(storage_source_template)
+                new_storage_source_parameters = sources_calculation.get_storage_load()
                 new_storage_source_parameters['name'] = f'Storage-источник №{storages_amount + 1}'
-                unfiltred_sources_list.append(new_storage_source_parameters)
+                sources_list.append(new_storage_source_parameters)
 
         # складываем всю полученную необходимую нагрузку со всех источников в параметры инсталляции
-        for counter, each_source in enumerate(unfiltred_sources_list):
+        for counter, each_source in enumerate(sources_list):
             installation_parameters['overall_static'] += each_source['files']
             installation_parameters['overall_dynamic'] += each_source['dynamic_load']
             installation_parameters['overall_vms'] += each_source['vms_needed']
@@ -187,18 +207,18 @@ if __name__ == '__main__':
         sources_fancy_table = data_processing.generate_table(
             'fancy',
             'Параметры источников',
-            russian_sources_fields_for_display,
-            unfiltred_sources_list,
+            output_sources_fields_for_display,
+            sources_list,
             'name',
-            original_sources_fields_for_display)
+            sources_fields_for_display)
         # генерируем таблицу для вывода в CSV
         sources_csv_table = data_processing.generate_table(
             'csv',
             'Параметры источников',
-            russian_sources_fields_for_display,
-            unfiltred_sources_list,
+            output_sources_fields_for_display,
+            sources_list,
             'name',
-            original_sources_fields_for_display
+            sources_fields_for_display
         )
         # генерируем сводку для вывода в консоль
         sources_cli_results = (
@@ -228,7 +248,7 @@ if __name__ == '__main__':
         input_output.output_data_to_csv(sources_csv_table, 'w', CSV_OUTPUT_FILE, CSV_OUTPUT_ENCODING, CSV_OUTPUT_DELIMITER) # таблицу в csv файл
         print('Данные сохранены в файл txt: ', TXT_OUTPUT_FILE)
         print('Данные сохранены в файл csv: ', CSV_OUTPUT_FILE)
-        print('\nВсе расчеты сорхранены в файлы. Если выполнение скрипта Вам далее не требуется - можете завершить его нажатием Ctrl+C.')
+        print('\nВсе расчеты сохранены в файлы. Если выполнение скрипта Вам далее не требуется - можете завершить его нажатием Ctrl+C.')
 
     # расчет ТХ на основании вручную вводимой нагрузки
     elif main_work_mode_choice == 2:
@@ -301,9 +321,10 @@ if __name__ == '__main__':
     #расчет места под базовые образы в зависимости от их количества
     input_output.print_header('Расчет места под базовые образы')
     installation_parameters['iso_amount'] = input_output.input_integer_with_default(
-        'Введите количество базовых образов, которые будут установлены на стенде\n'
-        f"Важно: образ это не то же самое, что виртуальная машина", installation_parameters['iso_amount']
-    )
+        'Важно: образ это не то же самое, что виртуальная машина!\n'
+        f"Введите количество базовых образов, которые будут установлены на стенде (по умолчанию - {installation_parameters['iso_amount']}): ",
+        installation_parameters['iso_amount']
+        )
 
 
     # вторая часть скрипта - считаем итоговую конфигурацию
@@ -421,10 +442,60 @@ if __name__ == '__main__':
             installation_parameters['iso_amount'])
         )
 
-    
-    #TODO красивый выводв в оба типа файлов
-    # сделать так, что объект-сущность-источник создается в sources_calculation
-    # уникальные имена для всех серверов
-    # перенести json -> processing
-    # сделать валидацию json-файлов
-    # придумать что-то с точками в csv файлах (чтобы эксель нормально кушал)
+
+    # обработка серверов перед выводом
+    servers_list = data_processing.prepare_servers_list(servers_list)
+
+    # создаем таблицу с техническими характеристиками для вывода в консоль
+    servers_tech_cli_table = data_processing.generate_table(
+        'fancy',
+        'Параметры серверов',
+        output_servers_fields_technical_characteristics,
+        servers_list,
+        'server_role',
+        servers_fields_technical_characteristics
+    )
+    # таблицу с техническими характеристиками для csv-файла
+    servers_tech_csv_table = data_processing.generate_table(
+        'csv',
+        'Параметры серверов',
+        output_servers_fields_technical_characteristics,
+        servers_list,
+        'server_role',
+        servers_fields_technical_characteristics
+    )
+    # таблицу с разметкой диска для вывода в консоль
+    servers_part_cli_table = data_processing.generate_table(
+        'fancy',
+        'Точка монтирования',
+        output_servers_fields_partitioning,
+        servers_list,
+        'server_role',
+        servers_fields_partitioning
+    )
+    # таблицу с разметкой диска для вывода в csv-файл
+    servers_part_csv_table = data_processing.generate_table(
+        'csv',
+        'Точка монтирования',
+        output_servers_fields_partitioning,
+        servers_list,
+        'server_role',
+        servers_fields_partitioning
+    )
+
+    # вывод таблиц в консоль
+    input_output.print_header('Итоговые значения для серверов', header_level = 1, newline_indent = 2)
+    input_output.print_header('Таблица с техническими характеристиками')
+    print(servers_tech_cli_table)
+    input_output.print_header('Таблица с разметкой диска')
+    print(servers_part_cli_table)
+
+    # вывод таблиц в файлы
+
+
+    #TODO флаг-симофор, отвечающий за метод вывода данных в файлы. переключится, если был первый вывод
+    # доделать вывод общей информации
+    # частная валидация каждого жсон объета?
+    # доделать выводы первой части расчетов - то, что касается нагрузки с источников. надо ли выводить в csv? наверное нет. в txt надо?
+    # readme
+    # пересмотреть форматирование заголовков вовремя работы со скриптом?

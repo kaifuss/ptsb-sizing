@@ -1,20 +1,46 @@
+import json
 from tabulate import tabulate
 
-#TODO удалить если удалю из main
-# функция для фильтрации данных источников (словарей) по указанным полям
-def filter_source_dict_fields(source: dict, fields_for_filter: list) -> dict:
+
+#Функция импорта данных из json-файла
+def load_data_from_json(json_file_path: str, json_object_name: str) -> dict:
     """
-    Функция фильтрует словарь источника по указанным полям, удаляя все остальные. 
+    Функция импорта данных из json-файла. Принимает на вход путь к файлу и имя json-объекта, data которого нужно вернуть.
 
     Параметры:
-        source (dict): Источник, который нужно отфильтровать, хранимый в словаре.
-        fields_for_filter (list): Список полей для фильтрации.
+        json_file_path (str): Путь к json-файлу.
+        json_object_name (str): Имя json-объекта, data которого нужно вернуть.
 
     Возвращает:
-        dict: Обновленный словарь источника. С теми полями, которые были указаны в fields_for_filter.
+        dict: Словарь, сформированный из json-объекта.
     """
+    try:
+        with open(json_file_path, 'r', encoding='utf-8') as json_file:
+            data = json.load(json_file)
+            return data[json_object_name]
+    
+    except json.JSONDecodeError:
+        print(f"Ошибка при импорте JSON данных {json_object_name} из файла {json_file_path}. Проверьте синтаксис и данные.\nСкрипт остановлен.")
+        exit()
 
-    return {field: source[field] for field in fields_for_filter}
+
+# TODO валидация всех json файлов
+def validate_json(json_file_path: str) -> bool:
+    """
+    Проверяет корректность заполенения json-файлов по умолчанию через попытку создать словарь.
+
+    Параметры:
+        json_file_path (str): Путь к json-файлу, содержащему объекты.
+
+    Возвращает:
+        bool: True, если json-файл корректен, иначе False.
+    """
+    try:
+        with open(json_file_path, 'r', encoding='utf-8') as json_file:
+            json.load(json_file)
+            return True
+    except json.JSONDecodeError:
+        return False
 
 
 #генерация таблиц в TXT и CSV форматах на основании списка словарей
@@ -60,3 +86,25 @@ def generate_table(
         csv_table = [list(table_columns.keys())]
         csv_table.extend(transposed_table)
         return csv_table
+    
+
+# функция создания уникальных имён для серверов
+def prepare_servers_list(servers_list: list[dict]) -> list[str]:
+    """
+    Заменяет value "0" на "Не требуется" для каждого параметра серверов.
+    Добавляет серверам порядковые имена для создания уникальных идентификаторов.
+
+    Параметры:
+        servers_list (list[dict]): Список словарей с данными о серверах.
+
+    Возвращает:
+        list[str]: Обновленный список словарей.
+    """
+
+    # уникальные имена для серверов
+    for number, server in enumerate(servers_list, start=1):
+        server['server_role'] = f"Сервер {number}\n{server.get('server_role')}"    
+    # замена на "не требуется"
+    for server in servers_list:
+        for parameter, value in server.items():
+            server[parameter] = "Не требуется" if value == 0 else value
