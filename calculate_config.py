@@ -11,7 +11,6 @@ print('''
 # встроенные библиотеки python
 import math
 import os
-from tabulate import tabulate
 
 # самописные функции
 from additional_functions import input_output           # форматированный ввод и вывод данных 
@@ -19,15 +18,8 @@ from additional_functions import servers_calculation    # расчет пара�
 from additional_functions import sources_calculation    # расчет параметров источников
 from additional_functions import data_processing        # обработка данных
 
-##GLOBALS
-#Цветовые коды
-#RED = '\033[31m'
-#GREEN = '\033[32m'
-#YELLOW = '\033[33m'
-#RESET = '\033[0m'  #сброс на дефолт
 
-
-#Константы JSON файлов с параматрами по-умолчанию создаваемой конфигурации
+#Константы JSON файлов с параматрами по умолчанию создаваемой конфигурации
 PATH_TO_DEFAULT_VALUES = 'default_values'
 JSON_FILE_INSTALLATION_PARAMETERS = os.path.join(PATH_TO_DEFAULT_VALUES, 'installation_parameters.json')
 JSON_FILE_SOURCES_PARAMETERS = os.path.join(PATH_TO_DEFAULT_VALUES, 'sources_parameters.json')
@@ -41,7 +33,19 @@ for json_file in [JSON_FILE_INSTALLATION_PARAMETERS, JSON_FILE_SOURCES_PARAMETER
 #Константы файлов, куда будут сохраняться результаты работы
 PATH_TO_OUTPUT_FILES = 'output_files'
 TXT_OUTPUT_FILE = os.path.join(PATH_TO_OUTPUT_FILES, 'calculated_config.txt')
-CSV_OUTPUT_FILE = os.path.join(PATH_TO_OUTPUT_FILES, 'calculated_sources.csv')
+CSV_OUTPUT_FILE = os.path.join(PATH_TO_OUTPUT_FILES, 'calculated_config.csv')
+if os.path.exists(TXT_OUTPUT_FILE):
+    try:
+        os.remove(TXT_OUTPUT_FILE)
+    except PermissionError:
+        print(f"Ошибка при удалении файлов предыдущих расчетов.\nУбедитесь, что файл {TXT_OUTPUT_FILE} сейчас не используется и повторите запуск скрипта.\n")
+        exit()
+if os.path.exists(CSV_OUTPUT_FILE):
+    try:
+        os.remove(CSV_OUTPUT_FILE)
+    except PermissionError:
+        print(f"Ошибка при удалении файлов предыдущих расчетов.\nУбедитесь, что файл {CSV_OUTPUT_FILE} сейчас не используется и повторите запуск скрипта.\n")
+        exit()
 
 #Константы параметров вывода текста в output файлы (полученные значения в результате работы скрипта)
 TXT_OUTPUT_ENCODING = 'utf-8'
@@ -53,12 +57,8 @@ CSV_OUTPUT_NEWLINE = ''
 #INT MAIN
 if __name__ == '__main__':
 
-    #TODO
-    # флаг-симофор, отвечающий за метод вывода данных в файлы. переключится, если был первый вывод
-    
-
     servers_list = []               #списрок для хранения всех объектов dict(), содержащих конфигурацию серверов
-    sources_list = []               #список всех источников (объекты класса dict()), до фильтрации
+    sources_list = []               #список всех источников dict()
     
     sources_fields_for_display = [          #список полей источников, которые будут участвовать в создании таблицы
         'files',
@@ -108,11 +108,10 @@ if __name__ == '__main__':
         '\nДоступные варианты расчета технических характеристик под сервера PT SB:\n'
         '1. Расчет ТХ серверов (а также их количества) на основании известных или около известных показателей нагрузки с различных источников.\n'
         '2. Расчет ТХ серверов (а также их количества) на основании вручную вводимых показателей нагрузки на статику и динамику в час.\n'
-        '3. Полностью ручной расчет ТХ серверов на основании вручную вводимого количества ВМ на сервер и количества серверов.',
+        '3. Полностью ручной расчет ТХ серверов на основании вручную вводимого количества серверов и количества ВМ на сервер.',
         3
     )
 
-    # TODO подумать что лучше - создавать словарь с параметрами источника тут или в функциях расчета
     # расчет ТХ через расчет нагрузки с источников 
     if main_work_mode_choice == 1:
         input_output.print_header('Расчет нагрузки с источников', header_level=1, newline_indent=2)
@@ -183,26 +182,27 @@ if __name__ == '__main__':
             installation_parameters['overall_dynamic'] += each_source['dynamic_load']
             installation_parameters['overall_vms'] += each_source['vms_needed']
             installation_parameters['generated_storage_size_per_hour'] += each_source['generated_storage_size']
+        # меняем точку на запятую для нагрузки в час
+        sources_list = data_processing.prepare_sources_list(sources_list)
 
-        #TODO спрашивать - надо ли впринципе производить расчеты или нет 
         #расчет места, занимаемого всеми источниками за N дней
-        input_output.print_header('Расчет места, занимаемого заданиями со всех источников', 2, 2)
-        installation_parameters['hours_of_generation_storage'] = input_output.input_integer_with_default(
-            "Введите количество часов за день, в течение которых активно принимается входящий трафик (задания) системой PT SB"
-            f" (по умолчанию - {installation_parameters['hours_of_generation_storage']}): ",
-            installation_parameters['hours_of_generation_storage']
-        )
-        installation_parameters['days_to_save_data'] = input_output.input_integer_with_default(
-            f"Введите количество дней, в течение которых должны сохраняться данные (по умолчанию - {installation_parameters['days_to_save_data']}): ",
-            installation_parameters['days_to_save_data']
-        )
-        installation_parameters['overall_storage_size'] = math.ceil(
-            installation_parameters['generated_storage_size_per_hour'] *
-            installation_parameters['hours_of_generation_storage'] *
-            installation_parameters['days_to_save_data']
-        )
+        if installation_parameters['generated_storage_size_per_hour'] > 0:
+            input_output.print_header('Расчет места под хранение проверенных файлов', 2, 2)
+            installation_parameters['hours_of_generation_storage'] = input_output.input_integer_with_default(
+                "Введите количество часов за день, в течение которых активно принимается входящий трафик (задания) системой PT SB"
+                f" (по умолчанию - {installation_parameters['hours_of_generation_storage']}): ",
+                installation_parameters['hours_of_generation_storage']
+            )
+            installation_parameters['days_to_save_data'] = input_output.input_integer_with_default(
+                f"Введите количество дней, в течение которых должны сохраняться данные (по умолчанию - {installation_parameters['days_to_save_data']}): ",
+                installation_parameters['days_to_save_data']
+            )
+            installation_parameters['overall_storage_size'] = math.ceil(
+                installation_parameters['generated_storage_size_per_hour'] *
+                installation_parameters['hours_of_generation_storage'] *
+                installation_parameters['days_to_save_data']
+            )
 
-        #TODO не генерировать таблицу, если источник один?
         # генерируем красивую таблицу со всеми источниками для вывода в консоль
         sources_fancy_table = data_processing.generate_table(
             'fancy',
@@ -225,7 +225,7 @@ if __name__ == '__main__':
             f"Суммарное количество статических заданий: {installation_parameters['overall_static']}\n"
             f"Суммарное количество динамических заданий после всех отсечек: {installation_parameters['overall_dynamic']}\n"
             f"Рекомендуемое количество виртуальных машин на всю инсталляцию: {installation_parameters['overall_vms']}\n"
-            f"Генерируемый объем файлов заданий со всех источников в час (ГБ): {installation_parameters['generated_storage_size_per_hour']}\n"
+            f"Генерируемый объем файлов заданий со всех источников в час (ГБ): {round(installation_parameters['generated_storage_size_per_hour'], 2)}\n"
             f"Генерируемый объем файлов заданий со всех источников за всё время (ГБ): {installation_parameters['overall_storage_size']}"
         )
         #отражаем возможность использования инсталляции AiO
@@ -235,7 +235,7 @@ if __name__ == '__main__':
             sources_cli_results += (f"\nИспользование инсталляции AiO: Возможно")
 
         #выводим красивую fancy таблицу и суммарные данные в консоль
-        input_output.print_header('Итоговые показатели нагрузки со всех источников', 1, 2)
+        input_output.print_header('Итоговые показатели нагрузки', 1, 2)
         input_output.print_header('Таблица нагрузки со всех источников')
         print(sources_fancy_table)
         input_output.print_header('Объединенные результаты расчётов')
@@ -243,9 +243,19 @@ if __name__ == '__main__':
 
         #начинаем сохранять всё это дело в файлы
         input_output.print_header('Сохранение результатов расчётов в файлы')
-        input_output.output_data_to_txt(sources_fancy_table, 'w', TXT_OUTPUT_FILE, TXT_OUTPUT_ENCODING) # таблицу в txt файл
-        input_output.output_data_to_txt("\n\n" + sources_cli_results, 'a', TXT_OUTPUT_FILE, TXT_OUTPUT_ENCODING) # суммарные данные в txt файл
-        input_output.output_data_to_csv(sources_csv_table, 'w', CSV_OUTPUT_FILE, CSV_OUTPUT_ENCODING, CSV_OUTPUT_DELIMITER) # таблицу в csv файл
+        input_output.output_data_to_txt(    # таблицу + итоговое в txt файл
+            "Параметры источников проверки файлов:\n" + sources_fancy_table + "\n\nОбъединенные результаты расчётов:\n" + sources_cli_results,
+            'w',
+            TXT_OUTPUT_FILE,
+            TXT_OUTPUT_ENCODING
+        )
+        input_output.output_data_to_csv(    # таблицу в csv файл
+            sources_csv_table + ['',''],
+            'w',
+            CSV_OUTPUT_FILE,
+            CSV_OUTPUT_ENCODING,
+            CSV_OUTPUT_DELIMITER
+        )
         print('Данные сохранены в файл txt: ', TXT_OUTPUT_FILE)
         print('Данные сохранены в файл csv: ', CSV_OUTPUT_FILE)
         print('\nВсе расчеты сохранены в файлы. Если выполнение скрипта Вам далее не требуется - можете завершить его нажатием Ctrl+C.')
@@ -274,7 +284,7 @@ if __name__ == '__main__':
             print('\nРасчитанное количество ВМ на инсталляцию: ', installation_parameters['overall_vms'])
         
         # расчет количества места под хранение проверенных файлов
-        input_output.print_header('Расчет места под хранение проверенных файлов')
+        input_output.print_header('Расчет места под хранение проверенных файлов', newline_indent=2)
         if input_output.input_yes_no('Необходимо ли расчитать место под хранение проверенных файлов?'):
             # узнаем размер одного проверенного задания в МБайтах
             installation_parameters['one_task_size'] = input_output.input_float_number_with_default(
@@ -298,19 +308,31 @@ if __name__ == '__main__':
                 installation_parameters['overall_static'] *
                 installation_parameters['hours_of_generation_storage'] *
                 installation_parameters['days_to_save_data'] / 1024)
-            
-        # выводим всё, что насчитали по введённым параметрам
-        input_output.print_header('Итоговые показатели', 2)
-        print(f"Количество статических заданий в час: {installation_parameters['overall_static']}")
-        print(f"Количество динамических заданий в час: {installation_parameters['overall_dynamic']}")
-        print(f"Количество ВМ на инсталляцию: {installation_parameters['overall_vms']}")
+        
+        #подготовка полученных результатвов к выводу в CLI и текстовый файл
+        configured_cli_results = (
+            f"Количество статических заданий в час: {installation_parameters['overall_static']}\n"
+            f"Количество динамических заданий в час: {installation_parameters['overall_dynamic']}\n"
+            f"Генерируемый объем файлов заданий за всё время (ГБ): {installation_parameters['overall_storage_size']}\n"
+            f"Количество ВМ на инсталляцию: {installation_parameters['overall_vms']}\n"
+        )
         # отражаем возможность использования AiO
         if installation_parameters['overall_vms'] > installation_parameters['vms_for_master']:
-            print(f"Использование инсталляции AiO: Не рекомендуется")
+            configured_cli_results += f"Использование инсталляции AiO: Не рекомендуется"
         else:
-            print(f"Использование инсталляции AiO: Возможно")
-        # выводим дисковое пространство 
-        print(f"Генерируемый объем файлов заданий за всё время (ГБ): {installation_parameters['overall_storage_size']}")
+            configured_cli_results += f"Использование инсталляции AiO: Возможно"
+        
+        # выводим всё, что насчитали по введённым параметрам
+        input_output.print_header('Итоговые показатели нагрузки', header_level=1, newline_indent=2)
+        print(configured_cli_results)
+        
+        # сохраняем в TXT файл, то что получилось
+        input_output.output_data_to_txt(
+            "Показатели нагрузки инсталляции:\n" + configured_cli_results,
+            'w',
+            TXT_OUTPUT_FILE,
+            TXT_OUTPUT_ENCODING
+        )
 
     # расчет ТХ только на основании вручную вводимого количества ВМ
     elif main_work_mode_choice == 3:
@@ -319,13 +341,12 @@ if __name__ == '__main__':
         installation_parameters['overall_storage_size'] = input_output.input_integer_number('Введите размер хранилища в ГБ, если требуется: ')
 
     #расчет места под базовые образы в зависимости от их количества
-    input_output.print_header('Расчет места под базовые образы')
+    input_output.print_header('Расчет места под базовые образы', newline_indent=2)
     installation_parameters['iso_amount'] = input_output.input_integer_with_default(
         'Важно: образ это не то же самое, что виртуальная машина!\n'
         f"Введите количество базовых образов, которые будут установлены на стенде (по умолчанию - {installation_parameters['iso_amount']}): ",
         installation_parameters['iso_amount']
         )
-
 
     # вторая часть скрипта - считаем итоговую конфигурацию
     input_output.print_header('Создание конфигурации инсталляции', header_level=1, newline_indent=2)
@@ -368,22 +389,26 @@ if __name__ == '__main__':
         # считаем как распределить ВМ между сервером управления и дополнительными серверами ПА
         # vms_all <= vms_for_master < vms_for_additional
         if installation_parameters['overall_vms'] <= installation_parameters['vms_for_master']:
-            vms_for_master = installation_parameters['vms_for_master']
+            vms_for_master = installation_parameters['overall_vms']
             vms_for_additionals = installation_parameters['vms_for_additional']
-        # vms_for_master < vms_all <= vms_for_additional
-        elif installation_parameters['vms_for_master'] < installation_parameters['overall_vms'] <= installation_parameters['vms_for_additional']:
+        # vms_for_master < vms_all < vms_for_additional
+        elif installation_parameters['vms_for_master'] < installation_parameters['overall_vms'] < installation_parameters['vms_for_additional']:
             vms_for_master = installation_parameters['vms_for_master']
             vms_for_additionals = installation_parameters['overall_vms'] - vms_for_master
-        # vms_for_master < vms_for_additional < vms_all
-        elif installation_parameters['overall_vms'] > installation_parameters['vms_for_additional']:
+        # vms_for_master < vms_for_additional <= vms_all <= vms_for_additional + vms_for_master
+        elif installation_parameters['vms_for_additional'] <= installation_parameters['overall_vms'] <= installation_parameters['vms_for_additional'] + installation_parameters['vms_for_master']:
             vms_for_master = installation_parameters['overall_vms'] % installation_parameters['vms_for_additional']
+            vms_for_additionals = installation_parameters['overall_vms'] - vms_for_master
+        # vms_for_additional < vms_for_additional + vms_for_master < vms_all
+        elif installation_parameters['vms_for_additional'] + installation_parameters['vms_for_master'] < installation_parameters['overall_vms']:
+            vms_for_master = installation_parameters['vms_for_master']
             vms_for_additionals = installation_parameters['overall_vms'] - vms_for_master
 
         # спрашиваем пользователя, устраивает ли его то, что мы предложили:
         input_output.print_header('Расчет конфигурации сервера урпавления с функцией ПА')
         master_config_choise = input_output.input_choise_digit(
             f"1. Расчет ТХ под сервер управления с {installation_parameters['vms_for_master']} (максимально возможным числом) ВМ.\n"
-            f"2. Расчет ТХ под сервер управления с {vms_for_master} ВМ. Тогда оставшиеся {vms_for_additionals} ВМ уйдут на дополнительные серверы ПА.\n"
+            f"2. Расчет ТХ под сервер управления с {vms_for_master} ВМ. Оставшиеся {vms_for_additionals} ВМ будут распределены между дополнительными серверами ПА.\n"
             f"3. Вручную ввести количество ВМ для сервера управления.",3
         )
 
@@ -442,7 +467,6 @@ if __name__ == '__main__':
             installation_parameters['iso_amount'])
         )
 
-
     # обработка серверов перед выводом
     servers_list = data_processing.prepare_servers_list(servers_list)
 
@@ -487,15 +511,24 @@ if __name__ == '__main__':
     input_output.print_header('Итоговые значения для серверов', header_level = 1, newline_indent = 2)
     input_output.print_header('Таблица с техническими характеристиками')
     print(servers_tech_cli_table)
-    input_output.print_header('Таблица с разметкой диска')
+    input_output.print_header('Таблица с разметкой дисков')
     print(servers_part_cli_table)
 
     # вывод таблиц в файлы
-
-
-    #TODO флаг-симофор, отвечающий за метод вывода данных в файлы. переключится, если был первый вывод
-    # доделать вывод общей информации
-    # частная валидация каждого жсон объета?
-    # доделать выводы первой части расчетов - то, что касается нагрузки с источников. надо ли выводить в csv? наверное нет. в txt надо?
-    # readme
-    # пересмотреть форматирование заголовков вовремя работы со скриптом?
+    input_output.print_header('Сохранение результатов расчётов в файлы')
+    input_output.output_data_to_txt(
+        "\n\n\nТехнические характеристики серверов:\n" + servers_tech_cli_table + "\n\nРазметка дискового пространства серверов:\n" + servers_part_cli_table,
+        'a',
+        TXT_OUTPUT_FILE,
+        TXT_OUTPUT_ENCODING
+    )
+    input_output.output_data_to_csv(
+        servers_tech_csv_table + ['',''] + servers_part_csv_table,
+        'a',
+        CSV_OUTPUT_FILE,
+        CSV_OUTPUT_ENCODING,
+        CSV_OUTPUT_DELIMITER
+    )
+    print('Данные сохранены в файл txt: ', TXT_OUTPUT_FILE)
+    print('Данные сохранены в файл csv: ', CSV_OUTPUT_FILE)
+    print('\nВсе расчеты сохранены в файлы. Выполнение скрипта закончено.\n')

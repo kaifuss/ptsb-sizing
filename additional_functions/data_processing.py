@@ -24,7 +24,7 @@ def load_data_from_json(json_file_path: str, json_object_name: str) -> dict:
         exit()
 
 
-# TODO валидация всех json файлов
+# валидация всех json файлов перед началом работы со скриптом
 def validate_json(json_file_path: str) -> bool:
     """
     Проверяет корректность заполенения json-файлов по умолчанию через попытку создать словарь.
@@ -108,3 +108,26 @@ def prepare_servers_list(servers_list: list[dict]) -> list[str]:
     for server in servers_list:
         for parameter, value in server.items():
             server[parameter] = "Не требуется" if value == 0 else value
+
+    return servers_list
+
+
+# функция замены точки на запятую для словарей с источниками
+def prepare_sources_list(sources_list: list[dict]) -> list[dict]:
+    """
+    Заменяет точку на запятую в значениях словарей с источниками.
+
+    Параметры:
+        sources_list (list[dict]): Список словарей с данными о источниках.
+
+    Возвращает:
+        list[dict]: Обновленный список словарей.
+    """
+
+    for source in sources_list:
+        storage_value = source.get('generated_storage_size')
+        if storage_value is not None:
+            formatted_value = f"{storage_value:,.2f}".replace('.', ',')
+            source['generated_storage_size'] = formatted_value
+
+    return sources_list

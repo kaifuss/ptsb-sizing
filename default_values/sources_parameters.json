@@ -73,7 +73,7 @@
         "time_to_scan": 150,
         "dynamic_load": 0,
         "vms_needed": 0,
-        "one_task_size": 0,
+        "one_task_size": 15,
         "generated_storage_size": 0
     }
 }

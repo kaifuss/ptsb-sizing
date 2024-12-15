@@ -9,7 +9,7 @@ YELLOW = '\033[33m'
 RESET = '\033[0m'  #сброс на дефолт
 
 
-#напечатать красивый заголовок
+# напечатать красивый заголовок
 def print_header(text: str, header_level: int = 2, newline_indent: int = 1) -> None:
     """
     Выводит на экран красивое оформление заголовка
@@ -35,7 +35,7 @@ def print_header(text: str, header_level: int = 2, newline_indent: int = 1) -> N
     print(f"{newline_indent * newline}{text.center(header_length, header_symbol)}")
 
 
-#согласие на ввод. возвращает True/False
+# согласие на ввод. возвращает True/False
 def input_yes_no(question: str) -> bool:
     """
     Запрашивает у пользователя ответ 'да' или 'нет' и возвращает булево значение.
@@ -61,7 +61,7 @@ def input_yes_no(question: str) -> bool:
             exit()
 
 
-#ввод целого числа при выборе. возвращает целое число от 1 до N
+# ввод целого числа при выборе. возвращает целое число от 1 до N
 def input_choise_digit(question: str, max_option: int) -> int:
     """
     Запрашивает у пользователя на ввод целое число. Сравнивает полученное число с допустимыми значениями (от 1 до max_option).
@@ -81,14 +81,15 @@ def input_choise_digit(question: str, max_option: int) -> int:
             if input_digit in range(1, max_option + 1):
                 return input_digit
             else:
-                print(f"{RED}Некорректный ввод.{RESET} Введите число от 1 до {max_option}: ")
+                print(f"{RED}Некорректный ввод.{RESET} Введите число от 1 до {max_option}.\n")
         except ValueError:
-            print(f"{RED}Некорректный ввод.{RESET} Ожидалось целое число от 1 до {max_option}: ")
+            print(f"{RED}Некорректный ввод.{RESET} Ожидалось целое число от 1 до {max_option}.\n")
         except KeyboardInterrupt:
             print('\n \nПринудительный выход из скрипта.\n')
             exit()
 
-#ввод проверка ввода любого целого числа. возвращает целое число
+
+# ввод проверка ввода любого целого числа. возвращает целое число
 def input_integer_number(question: str) -> int:
     """
     Запрашивает у пользователя на ввод любое целое число.
@@ -110,7 +111,8 @@ def input_integer_number(question: str) -> int:
             print('\n \nПринудительный выход из скрипта.\n')
             exit()
 
-#ввод проверка ввода любого целого числа. возвращает целое число, либо число по умолчанию
+
+# ввод проверка ввода любого целого числа. возвращает целое число, либо число по умолчанию
 def input_integer_with_default(question: str, default_value: int) -> int:
     """
     Запрашивает у пользователя на ввод любое целое число. Если пользователь ничего не вводит, возвращает число по умолчанию.

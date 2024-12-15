@@ -9,8 +9,8 @@
         "overall_vms": 0,
         "one_task_size": 2,
         "generated_storage_size_per_hour": 0,
-        "hours_of_generation_storage": 16,
-        "days_to_save_data": 30,
+        "hours_of_generation_storage": 14,
+        "days_to_save_data": 45,
         "overall_storage_size": 0
     }
 }
