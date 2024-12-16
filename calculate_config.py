@@ -281,10 +281,9 @@ if __name__ == '__main__':
         elif vm_calculation_type == 2:  # расчет количества на основе времени сканирования 1 файла
             installation_parameters['time_to_scan'] = input_output.input_integer_number('Введите время сканирования 1 файла в секундах: ')
             installation_parameters['overall_vms'] = math.ceil(installation_parameters['overall_dynamic'] * installation_parameters['time_to_scan'] / 3600)
-            print('\nРасчитанное количество ВМ на инсталляцию: ', installation_parameters['overall_vms'])
         
         # расчет количества места под хранение проверенных файлов
-        input_output.print_header('Расчет места под хранение проверенных файлов', newline_indent=2)
+        input_output.print_header('Расчет места под хранение проверенных файлов', newline_indent=1)
         if input_output.input_yes_no('Необходимо ли расчитать место под хранение проверенных файлов?'):
             # узнаем размер одного проверенного задания в МБайтах
             installation_parameters['one_task_size'] = input_output.input_float_number_with_default(
@@ -360,10 +359,11 @@ if __name__ == '__main__':
 
     # расчет AiO инсталляции
     if global_installation_choise == 1:
+        input_output.print_header('Конфигурация AiO сервера')
         # проверяем, что количество ВМ не превышает количество ВМ для AiO
         if installation_parameters['overall_vms'] <= installation_parameters['vms_for_master']:
             installation_parameters['overall_vms'] = input_output.input_integer_with_default(
-                '\nВведите количество ВМ для сервера AiO'
+                'Введите количество ВМ для сервера AiO '
                 f"(по умолчанию будет использоваться рекомендованное количество - {installation_parameters['overall_vms']}): ",
                 installation_parameters['overall_vms']
             )
