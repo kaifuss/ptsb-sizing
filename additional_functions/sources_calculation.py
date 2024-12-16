@@ -6,7 +6,7 @@ import os
 from additional_functions import input_output
 from additional_functions import data_processing
 
-#Константы JSON файлов с параматрами по-умолчанию создаваемой конфигурации
+#Константы JSON файлов с параматрами по умолчанию создаваемой конфигурации
 PATH_TO_DEFAULT_VALUES = 'default_values'
 JSON_FILE_SOURCES_PARAMETERS = os.path.join(PATH_TO_DEFAULT_VALUES, 'sources_parameters.json')
 
@@ -207,7 +207,7 @@ def get_icap_load() -> dict:
         dict: Созданный словарь с показателями нагрузки icap источника.
     """
     
-    # создаем объект-источник с параметрами по-умолчанию
+    # создаем объект-источник с параметрами по умолчанию
     icap_source_parameters = data_processing.load_data_from_json(JSON_FILE_SOURCES_PARAMETERS, 'icap_source_parameters')
 
     # если количество файлов неизвестно, то вычисляем среднее количество из пропорции:
@@ -250,7 +250,7 @@ def get_edr_load() -> dict:
         dict: Созданный словарь с показателями нагрузки pt edr источника.
     """    
 
-    # создаем объект-источник с параметрами по-умолчанию
+    # создаем объект-источник с параметрами по умолчанию
     edr_source_parameters = data_processing.load_data_from_json(JSON_FILE_SOURCES_PARAMETERS, 'edr_source_parameters')
 
     # если количество файлов неизвестно, то вычисляем среднее количество через multiplier
@@ -297,7 +297,7 @@ def get_automated_api_load() -> dict:
         dict: Созданный словарь с показателями нагрузки настроенного api источника.
     """
 
-    # создаем объект-источник с параметрами по-умолчанию
+    # создаем объект-источник с параметрами по умолчанию
     automated_api_source_parameters = data_processing.load_data_from_json(JSON_FILE_SOURCES_PARAMETERS, 'automated_api_source_parameters')
 
     # получаем количество файлов в час
@@ -336,7 +336,7 @@ def get_manual_api_load() -> dict:
         dict: Созданный словарь с показателями нагрузки ручного api источника.
     """
 
-    # создаем объект-источник с параметрами по-умолчанию
+    # создаем объект-источник с параметрами по умолчанию
     manual_api_source_parameters = data_processing.load_data_from_json(JSON_FILE_SOURCES_PARAMETERS, 'manual_api_source_parameters')
 
     # получаем количество файлов в час
@@ -373,7 +373,7 @@ def get_storage_load() -> dict:
         dict: Созданный словарь с показателями нагрузки источника файловой шары.
     """
 
-    # создаем объект-источник с параметрами по-умолчанию
+    # создаем объект-источник с параметрами по умолчанию
     storage_source_parameters = data_processing.load_data_from_json(JSON_FILE_SOURCES_PARAMETERS, 'storage_source_parameters')
 
     # получаем грубые показатели (а иначе никак :/ ) 
