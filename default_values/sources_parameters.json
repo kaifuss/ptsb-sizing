@@ -1,0 +1,79 @@
+{
+    "smtp_source_parameters": {
+        "mails": 0,
+        "users": 0,
+        "users_multiplier": 3,
+        "mails_with_attachments_percent": 80,
+        "mails_with_attachments": 0,
+        "attachments_per_mail": 1,
+        "dynamic_cutoff": 80,
+        "prefilter_cutoff": 40,
+        "cache_cutoff": 85,
+        "time_to_scan": 150,
+        "dynamic_load": 0,
+        "vms_needed": 0,
+        "one_task_size": 2,
+        "generated_storage_size": 0
+    },
+
+    "icap_source_parameters": {
+        "speed": 0,
+        "files": 0,
+        "dynamic_cutoff": 5,
+        "prefilter_cutoff": 40,
+        "cache_cutoff": 85,
+        "time_to_scan": 150,
+        "dynamic_load": 0,
+        "vms_needed": 0,
+        "one_task_size": 0.5,
+        "generated_storage_size": 0
+    },
+
+    "edr_source_parameters": {
+        "agents": 0,
+        "files": 0,
+        "agents_multiplier": 3,
+        "dynamic_cutoff": 1,
+        "prefilter_cutoff": 40,
+        "cache_cutoff": 85,
+        "time_to_scan": 150,
+        "dynamic_load": 0,
+        "vms_needed": 0,
+        "one_task_size": 5,
+        "generated_storage_size": 0
+    },
+
+    "automated_api_source_parameters": {
+        "files": 0,
+        "dynamic_cutoff": 50,
+        "prefilter_cutoff": 40,
+        "cache_cutoff": 95,
+        "time_to_scan": 150,
+        "dynamic_load": 0,
+        "vms_needed": 0,
+        "one_task_size": 10,
+        "generated_storage_size": 0
+    },
+
+    "manual_api_source_parameters": {
+        "files": 0,
+        "dynamic_cutoff": 50,
+        "cache_cutoff": 95,
+        "time_to_scan": 150,
+        "dynamic_load": 0,
+        "vms_needed": 0,
+        "one_task_size": 10,
+        "generated_storage_size": 0
+    },
+    
+    "storage_source_parameters": {
+        "files": 0,
+        "prefilter_cutoff": 40,
+        "cache_cutoff": 50,
+        "time_to_scan": 150,
+        "dynamic_load": 0,
+        "vms_needed": 0,
+        "one_task_size": 15,
+        "generated_storage_size": 0
+    }
+}

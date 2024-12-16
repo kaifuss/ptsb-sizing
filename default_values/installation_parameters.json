@@ -1,0 +1,16 @@
+{
+    "installation_parameters": {
+        "vms_for_master": 15,
+        "vms_for_additional": 45,
+        "iso_amount": 7,
+        "time_to_scan": 150,
+        "overall_static": 0,
+        "overall_dynamic": 0,
+        "overall_vms": 0,
+        "one_task_size": 2,
+        "generated_storage_size_per_hour": 0,
+        "hours_of_generation_storage": 14,
+        "days_to_save_data": 45,
+        "overall_storage_size": 0
+    }
+}
