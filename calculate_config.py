@@ -32,6 +32,8 @@ for json_file in [JSON_FILE_INSTALLATION_PARAMETERS, JSON_FILE_SOURCES_PARAMETER
 
 #Константы файлов, куда будут сохраняться результаты работы
 PATH_TO_OUTPUT_FILES = 'output_files'
+if not os.path.exists(PATH_TO_OUTPUT_FILES):
+    os.mkdir(PATH_TO_OUTPUT_FILES)
 TXT_OUTPUT_FILE = os.path.join(PATH_TO_OUTPUT_FILES, 'calculated_config.txt')
 CSV_OUTPUT_FILE = os.path.join(PATH_TO_OUTPUT_FILES, 'calculated_config.csv')
 if os.path.exists(TXT_OUTPUT_FILE):
