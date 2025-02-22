@@ -43,9 +43,6 @@ def calculate_master_with_dynamic(vms_amount: int, iso_amount: int, storage_incr
     for partition in ['root_space', 'opt_space', 'minio_space', 'home_space']:
         server_parameters[partition] = math.ceil(server_parameters[partition] * PART_MULTIPLIER * GIB_MULTIPLIER)
 
-    #добавляем место под хранение проверенных файлов
-    server_parameters['minio_space'] = server_parameters['minio_space'] + storage_increment
-
     # складываем изначальный размер ssd со всем, что было вычислено
     server_parameters['ssd_size'] = (
         server_parameters['ssd_size'] +
@@ -61,8 +58,8 @@ def calculate_master_with_dynamic(vms_amount: int, iso_amount: int, storage_incr
 
     # CPU Threads = 3 * N_ВМ + 9
     server_parameters['theads_amount'] = 3 * vms_amount + 9
-    # RAM = (4 * N_ВМ + 19) * 1.074
-    server_parameters['ram_amount'] = math.ceil((4 * vms_amount + 19) * GIB_MULTIPLIER)
+    # RAM = (6 * N_ВМ + 19) * 1.074
+    server_parameters['ram_amount'] = math.ceil((6 * vms_amount + 19) * GIB_MULTIPLIER)
     
     return server_parameters
 
@@ -84,15 +81,12 @@ def calculate_master_without_dynamic(iso_amount: int, static_tasks: int, storage
     # импортируем параметры по умолчанию для сервера из json-объекта
     server_parameters = data_processing.load_data_from_json(JSON_FILE_SERVERS_PARAMETERS, 'master_without_dynamic_parameters')
 
-    # V_minio = 8 * N_ISO + 50
-    server_parameters['minio_space'] = 8 * iso_amount + server_parameters['minio_space']
+    # V_minio = 8 * N_ISO + 50 + storage_increment
+    server_parameters['minio_space'] = 8 * iso_amount + server_parameters['minio_space'] + storage_increment
 
     # рекомендация по домножению на 8% и на 1.074 для перевода из ГиБ в ГБ
     for partition in ['root_space', 'opt_space', 'minio_space', 'home_space']:
         server_parameters[partition] = math.ceil(server_parameters[partition] * PART_MULTIPLIER * GIB_MULTIPLIER)
-
-    #добавляем место под хранение проверенных файлов
-    server_parameters['minio_space'] = server_parameters['minio_space'] + storage_increment
 
     # складываем изначальный размер ssd со всем, что было вычислено
     server_parameters['ssd_size'] = (
@@ -160,10 +154,10 @@ def calculate_additional_server_with_vms(vms_amount: int, iso_amount: int) -> di
         server_parameters['home_space']
     )
     
-    # Threads = 3 * N_ВМ + 4 // 2 * N_ВМ + 14
+    # Threads = 3 * N_ВМ + 4 || или || 2 * N_ВМ + 14
     server_parameters['theads_amount'] = 3 * vms_amount + 4 if vms_amount < 10 else 2 * vms_amount + 14
-    # RAM = 4 * N_ВМ + 5
-    server_parameters['ram_amount'] = math.ceil((4 * vms_amount + 5) * PART_MULTIPLIER)
+    # RAM = 4 * N_ВМ + 5 || или || 6,4 * N_ВМ + 4
+    server_parameters['ram_amount'] = math.ceil((4 * vms_amount + 5) * PART_MULTIPLIER) if vms_amount <= 15 else math.ceil((6.4 * vms_amount + 4) * PART_MULTIPLIER)
     
     return server_parameters
 
