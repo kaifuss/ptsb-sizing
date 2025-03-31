@@ -156,8 +156,8 @@ def calculate_additional_server_with_vms(vms_amount: int, iso_amount: int) -> di
     
     # Threads = 3 * N_ВМ + 4 || или || 2 * N_ВМ + 14
     server_parameters['theads_amount'] = 3 * vms_amount + 4 if vms_amount < 10 else 2 * vms_amount + 14
-    # RAM = 4 * N_ВМ + 5 || или || 6,4 * N_ВМ + 4
-    server_parameters['ram_amount'] = math.ceil((4 * vms_amount + 5) * PART_MULTIPLIER) if vms_amount <= 15 else math.ceil((6.4 * vms_amount + 4) * PART_MULTIPLIER)
+    # RAM = 6 * N_ВМ + 5 || или || 6,4 * N_ВМ + 4
+    server_parameters['ram_amount'] = math.ceil((6 * vms_amount + 5) * PART_MULTIPLIER) if vms_amount <= 15 else math.ceil((6.4 * vms_amount + 4) * PART_MULTIPLIER)
     
     return server_parameters
 
