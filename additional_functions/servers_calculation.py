@@ -36,12 +36,15 @@ def calculate_master_with_dynamic(vms_amount: int, iso_amount: int, storage_incr
     server_parameters['root_space'] = vms_amount + server_parameters['root_space']
     # V_opt = (N_ВМ + 15 * N_ISO + 43)
     server_parameters['opt_space'] = vms_amount + 15 * iso_amount + server_parameters['opt_space']
-    # V_minio = (8 * N_ISO + 50 + storage_increment)
-    server_parameters['minio_space'] = 8 * iso_amount + server_parameters['minio_space'] + storage_increment
+    # V_minio = (8 * N_ISO + 50)
+    server_parameters['minio_space'] = 8 * iso_amount + server_parameters['minio_space']
 
     # рекомендация по домножению на 8% и на 1.074 для перевода из ГиБ в ГБ
     for partition in ['root_space', 'opt_space', 'minio_space', 'home_space']:
         server_parameters[partition] = math.ceil(server_parameters[partition] * PART_MULTIPLIER * GIB_MULTIPLIER)
+
+    # добавляем Storage к minio после того, как minio переведен из ГиБ в ГБ
+    server_parameters['minio_space'] += storage_increment
 
     # складываем изначальный размер ssd со всем, что было вычислено
     server_parameters['ssd_size'] = (
@@ -81,12 +84,15 @@ def calculate_master_without_dynamic(iso_amount: int, static_tasks: int, storage
     # импортируем параметры по умолчанию для сервера из json-объекта
     server_parameters = data_processing.load_data_from_json(JSON_FILE_SERVERS_PARAMETERS, 'master_without_dynamic_parameters')
 
-    # V_minio = 8 * N_ISO + 50 + storage_increment
-    server_parameters['minio_space'] = 8 * iso_amount + server_parameters['minio_space'] + storage_increment
+    # V_minio = 8 * N_ISO + 50
+    server_parameters['minio_space'] = 8 * iso_amount + server_parameters['minio_space']
 
     # рекомендация по домножению на 8% и на 1.074 для перевода из ГиБ в ГБ
     for partition in ['root_space', 'opt_space', 'minio_space', 'home_space']:
         server_parameters[partition] = math.ceil(server_parameters[partition] * PART_MULTIPLIER * GIB_MULTIPLIER)
+
+    # добавляем к minio объем storage после домножения, чтобы не переводить storage из ГиБ в ГБ, т.к. уже ГБ
+    server_parameters['minio_space'] += storage_increment
 
     # складываем изначальный размер ssd со всем, что было вычислено
     server_parameters['ssd_size'] = (
