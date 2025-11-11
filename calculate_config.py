@@ -98,7 +98,7 @@ if __name__ == '__main__':
         '/                    [SSD]',
         '/opt                 [SSD]',
         '/opt/ptms/var/minio  [HDD]',
-        '/home                [HDD]',        
+        '/home            [HDD/SSD]',        
     ]
 
     #импорт данных по умолчанию из json-файлов в словарь

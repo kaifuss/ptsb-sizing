@@ -96,11 +96,13 @@ def calculate_master_without_dynamic(iso_amount: int, static_tasks: int, storage
 
     # складываем изначальный размер ssd со всем, что было вычислено
     server_parameters['ssd_size'] = (
+        server_parameters['ssd_size'] + 
         server_parameters['root_space'] +
         server_parameters['opt_space']
     )
     # складываем изначальный размер hdd со всем, что было вычислено
     server_parameters['hdd_size'] = (
+        server_parameters['hdd_size'] +
         server_parameters['minio_space'] +
         server_parameters['home_space']
     )    
@@ -152,12 +154,13 @@ def calculate_additional_server_with_vms(vms_amount: int, iso_amount: int) -> di
     # складываем изначальный размер ssd со всем, что было вычислено
     server_parameters['ssd_size'] = (
         server_parameters['root_space'] +
-        server_parameters['opt_space']
+        server_parameters['opt_space'] +
+        server_parameters['home_space']
     )
     # складываем изначальный размер hdd со всем, что было вычислено
     server_parameters['hdd_size'] = (
-        server_parameters['minio_space'] +
-        server_parameters['home_space']
+        server_parameters['hdd_size'] + 
+        server_parameters['minio_space']
     )
     
     # Threads = 3 * N_ВМ + 4 || или || 2 * N_ВМ + 14
