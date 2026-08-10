@@ -34,7 +34,7 @@ def calculate_master_with_dynamic(vms_amount: int, iso_amount: int, storage_incr
 
     # V_root = (N_ВМ + 118)
     server_parameters['root_space'] = vms_amount + server_parameters['root_space']
-    # V_opt = (N_ВМ + 15 * N_ISO + 43)
+    # V_opt = (N_ВМ + 15 * N_ISO + 52)
     server_parameters['opt_space'] = vms_amount + 15 * iso_amount + server_parameters['opt_space']
     # V_minio = (8 * N_ISO + 50)
     server_parameters['minio_space'] = 8 * iso_amount + server_parameters['minio_space']

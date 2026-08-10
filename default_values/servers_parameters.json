@@ -2,7 +2,7 @@
     "master_with_dynamic_parameters": {
         "server_role": "Сервер управления с функцией ПА",
         "root_space": 118,
-        "opt_space": 43,
+        "opt_space": 52,
         "minio_space": 50,
         "home_space": 86,
         "theads_amount": 0,
@@ -13,7 +13,7 @@
     "master_without_dynamic_parameters": {
         "server_role": "Сервер управления без функции ПА",
         "root_space": 120,
-        "opt_space": 75,
+        "opt_space": 84,
         "minio_space": 50,
         "home_space": 86,
         "theads_amount": 0,
